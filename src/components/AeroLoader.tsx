@@ -34,7 +34,7 @@ export default function AeroLoader({ onComplete, inline = false }: AeroLoaderPro
         return () => clearTimeout(timer);
     }, [onComplete]);
 
-    // Breathing animation variants for the logo
+    // Breathing animation variants for the text
     const breathe = {
         animate: {
             opacity: [1, 0.6, 1],
@@ -50,14 +50,13 @@ export default function AeroLoader({ onComplete, inline = false }: AeroLoaderPro
         // Compact version for <Suspense> fallbacks inside canvases etc.
         return (
             <div className="aero-loader-inline">
-                <motion.img
-                    src="/media/aero%20logo.png"
-                    alt="AERO"
-                    className="aero-loader-logo-sm"
+                <motion.div
+                    className="aero-loader-text-sm"
                     variants={breathe}
                     animate="animate"
-                    draggable={false}
-                />
+                >
+                    DRAXLER
+                </motion.div>
             </div>
         );
     }
@@ -65,14 +64,13 @@ export default function AeroLoader({ onComplete, inline = false }: AeroLoaderPro
     // Full-page loader (replaces old Preloader)
     return (
         <div ref={containerRef} className="aero-loader">
-            <motion.img
-                src="/media/aero%20logo.png"
-                alt="AERO"
-                className="aero-loader-logo"
+            <motion.div
+                className="aero-loader-text"
                 variants={breathe}
                 animate="animate"
-                draggable={false}
-            />
+            >
+                DRAXLER
+            </motion.div>
         </div>
     );
 }

@@ -37,9 +37,9 @@ export default function Home() {
         <Hero />
         <Gallery />
         <WheelShowcase />
-        <SocialGrid />
-        <ParallaxDivider />
         <Roadmap />
+        <ParallaxDivider />
+        <SocialGrid />
         <CarConfigurator />
         <FlashlightReveal />
         <Footer />

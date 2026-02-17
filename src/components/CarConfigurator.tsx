@@ -66,7 +66,7 @@ function ScrollCamera({
 /*  CarModel – loads the GLB, scales & centres it                     */
 /* ================================================================== */
 function CarModel() {
-    const { scene } = useGLTF("/car-models/g-wagon.glb", undefined, undefined, (loader) => {
+    const { scene } = useGLTF("/car-models/mercedes amg gt.glb", undefined, undefined, (loader) => {
         loader.setMeshoptDecoder(MeshoptDecoder);
     });
     const groupRef = useRef<THREE.Group>(null);
@@ -195,7 +195,7 @@ export default function CarConfigurator() {
     }, []);
 
     return (
-        <section ref={sectionRef} className="car-configurator-section">
+        <section ref={sectionRef} className="car-configurator-section" id="configurator">
             {/* 3D Canvas */}
             <Canvas
                 dpr={[1, 2]}

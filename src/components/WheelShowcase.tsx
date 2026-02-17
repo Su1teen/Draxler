@@ -16,6 +16,7 @@ interface HotspotData {
     id: number;
     position: [number, number, number];
     label: string;
+    side: "left" | "right";
     info: {
         title: string;
         value: string;
@@ -23,11 +24,27 @@ interface HotspotData {
     };
 }
 
+interface ModelBounds {
+    width: number;
+    height: number;
+    depth: number;
+}
+
+const TARGET_MAX_DIMENSION = 4;
+const TARGET_VIEWPORT_OCCUPANCY = 0.58;
+const CAMERA_FOV = 45;
+
+/* ── Parallax look-at constants ── */
+const MAX_TILT_X = THREE.MathUtils.degToRad(15);
+const MAX_TILT_Y = THREE.MathUtils.degToRad(20);
+const LERP_FACTOR = 0.05;
+
 const hotspots: HotspotData[] = [
     {
         id: 1,
-        position: [0.8, 0.5, 0.5],
+        position: [-1.97, 1.5, 1.05],
         label: "Forging",
+        side: "left",
         info: {
             title: "6061-T6 Forged Alloy",
             value: "6061-T6",
@@ -37,8 +54,9 @@ const hotspots: HotspotData[] = [
     },
     {
         id: 2,
-        position: [-0.6, -0.3, 0.7],
+        position: [-2.12, 0.05, 1.12],
         label: "Weight",
+        side: "left",
         info: {
             title: "Ultra-Lightweight",
             value: "8.2 kg",
@@ -48,8 +66,9 @@ const hotspots: HotspotData[] = [
     },
     {
         id: 3,
-        position: [0.2, -0.8, 0.4],
+        position: [-1.97, -1.5, 1.05],
         label: "Finish",
+        side: "left",
         info: {
             title: "Brushed Titanium",
             value: "PVD Coat",
@@ -57,29 +76,80 @@ const hotspots: HotspotData[] = [
                 "Physical Vapor Deposition coating provides a mirror-finish that resists brake dust, road salts, and UV degradation.",
         },
     },
+    {
+        id: 4,
+        position: [2.33, 1.5, 1.05],
+        label: "Precision",
+        side: "right",
+        info: {
+            title: "CNC Precision Machining",
+            value: "±0.02 mm",
+            description:
+                "Five-axis CNC machining ensures perfect spoke symmetry and true rotational balance at high speed.",
+        },
+    },
+    {
+        id: 5,
+        position: [2.48, 0.05, 1.12],
+        label: "Cooling",
+        side: "right",
+        info: {
+            title: "Optimized Brake Cooling",
+            value: "+18% Airflow",
+            description:
+                "Spoke channels are tuned for improved brake ventilation, reducing fade under repeated hard braking.",
+        },
+    },
+    {
+        id: 6,
+        position: [2.33, -1.5, 1.05],
+        label: "Durability",
+        side: "right",
+        info: {
+            title: "Track-Grade Durability",
+            value: "JWL / VIA",
+            description:
+                "Engineered to endure repeated load cycles and impact testing while maintaining structural rigidity.",
+        },
+    },
 ];
 
 function WheelModel({
     onHotspotClick,
+    onBoundsReady,
+    mouseRef,
 }: {
     onHotspotClick: (data: HotspotData) => void;
+    onBoundsReady: (bounds: ModelBounds) => void;
+    mouseRef: React.MutableRefObject<{ x: number; y: number }>;
 }) {
     const groupRef = useRef<THREE.Group>(null);
-    const mouseRef = useRef({ x: 0, y: 0 });
-    const { viewport } = useThree();
+    const targetRotation = useRef({ x: 0, y: 0 });
 
     // Load the FBX model
     const fbx = useFBX("/media/car%20rim.fbx");
 
-    // Traverse and apply proper MeshStandardMaterial for realistic metal
-    useEffect(() => {
-        fbx.traverse((child) => {
+    const { normalizedModel, normalizedScale, modelOffset, bounds } = useMemo(() => {
+        const cloned = fbx.clone(true);
+        let centeredGeometry = false;
+
+        cloned.traverse((child) => {
             if ((child as THREE.Mesh).isMesh) {
                 const mesh = child as THREE.Mesh;
+
+                if (mesh.geometry) {
+                    const geometry = mesh.geometry.clone();
+                    geometry.computeBoundingBox();
+                    if (!centeredGeometry) {
+                        geometry.center();
+                        centeredGeometry = true;
+                    }
+                    geometry.computeVertexNormals();
+                    mesh.geometry = geometry;
+                }
+
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
-
-                // Apply a proper metallic material so it reacts to environment lighting
                 mesh.material = new THREE.MeshStandardMaterial({
                     color: new THREE.Color(0x8a8a8a),
                     metalness: 0.95,
@@ -88,69 +158,84 @@ function WheelModel({
                 });
             }
         });
+
+        const box = new THREE.Box3().setFromObject(cloned);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxDimension = Math.max(size.x, size.y, size.z, 0.0001);
+        const scale = TARGET_MAX_DIMENSION / maxDimension;
+
+        return {
+            normalizedModel: cloned,
+            normalizedScale: scale,
+            modelOffset: center.multiplyScalar(-1),
+            bounds: {
+                width: size.x * scale,
+                height: size.y * scale,
+                depth: size.z * scale,
+            },
+        };
     }, [fbx]);
 
     useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouseRef.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
-        };
-        window.addEventListener("mousemove", handleMouseMove);
-        return () => window.removeEventListener("mousemove", handleMouseMove);
-    }, []);
+        onBoundsReady(bounds);
+    }, [bounds, onBoundsReady]);
 
     useFrame(() => {
-        if (groupRef.current) {
-            // Smooth follow with clamped rotation to prevent extreme angles
-            const targetY = mouseRef.current.x * 0.3; // Reduced sensitivity
-            const targetX = mouseRef.current.y * 0.15; // Reduced sensitivity
-            
-            // Clamp rotation values to prevent flipping/scaling issues
-            const clampedTargetY = Math.max(-0.5, Math.min(0.5, targetY));
-            const clampedTargetX = Math.max(-0.3, Math.min(0.3, targetX));
-            
-            groupRef.current.rotation.y +=
-                (clampedTargetY - groupRef.current.rotation.y) * 0.1;
-            groupRef.current.rotation.x +=
-                (clampedTargetX - groupRef.current.rotation.x) * 0.1;
-        }
+        if (!groupRef.current) return;
+        // Compute damped target from mouse position
+        targetRotation.current.y = mouseRef.current.x * MAX_TILT_Y;
+        targetRotation.current.x = -mouseRef.current.y * MAX_TILT_X;
+        // Lerp for heavy, expensive feel
+        groupRef.current.rotation.x += (targetRotation.current.x - groupRef.current.rotation.x) * LERP_FACTOR;
+        groupRef.current.rotation.y += (targetRotation.current.y - groupRef.current.rotation.y) * LERP_FACTOR;
     });
 
-    // Compute scale + center ONCE and lock it so clicks/re-renders never change the size
-    const { fixedScale, fixedCenter } = useMemo(() => {
-        const box = new THREE.Box3().setFromObject(fbx);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const s = Math.min((viewport.height * 0.625) / maxDim, 3.125);
-        return { fixedScale: s, fixedCenter: center };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Empty deps = compute once on mount, never recalculate
-
     return (
-        <group ref={groupRef} position={[-0.7, 0, 0]}>
+        <group ref={groupRef}>
             <primitive
-                object={fbx}
-                scale={[fixedScale, fixedScale, fixedScale]}
+                object={normalizedModel}
+                scale={[normalizedScale, normalizedScale, normalizedScale]}
                 rotation={[0, -Math.PI / 1.5, 0]}
-                position={[-fixedCenter.x * fixedScale, -fixedCenter.y * fixedScale, -fixedCenter.z * fixedScale]}
+                position={[modelOffset.x, modelOffset.y, modelOffset.z]}
             />
             {hotspots.map((spot) => (
                 <Html
                     key={spot.id}
                     position={spot.position}
-                    distanceFactor={3}
-                    zIndexRange={[10, 0]}
+                    transform
+                    sprite
+                    distanceFactor={12}
+                    zIndexRange={[100, 0]}
                 >
-                    <div
-                        className="hotspot-dot"
+                    <button
+                        className={`hotspot-dot ${spot.side === "left" ? "hotspot-dot--left" : ""}`}
                         onClick={() => onHotspotClick(spot)}
-                        title={spot.label}
-                    />
+                    >
+                        <span className="hotspot-dot__ring" />
+                        <span className="hotspot-dot__core" />
+                        <span className="hotspot-dot__label">{spot.label}</span>
+                    </button>
                 </Html>
             ))}
         </group>
     );
+}
+
+function AutoFitCamera({
+    distance,
+}: {
+    distance: number;
+}) {
+    const { camera } = useThree();
+
+    useEffect(() => {
+        camera.position.set(0, 0, distance);
+        camera.lookAt(0, 0, 0);
+        camera.updateProjectionMatrix();
+    }, [camera, distance]);
+
+    return null;
 }
 
 function LoaderFallback() {
@@ -173,14 +258,39 @@ function LoaderFallback() {
 export default function WheelShowcase() {
     const [activeHotspot, setActiveHotspot] = useState<HotspotData>(hotspots[0]);
     const [isMobile, setIsMobile] = useState(false);
+    const [modelBounds, setModelBounds] = useState<ModelBounds>({
+        width: TARGET_MAX_DIMENSION,
+        height: TARGET_MAX_DIMENSION,
+        depth: TARGET_MAX_DIMENSION,
+    });
     const sectionRef = useRef<HTMLDivElement>(null);
     const infoRef = useRef<HTMLDivElement>(null);
+    const mouseRef = useRef({ x: 0, y: 0 });
+
+    const fitDistance = useMemo(() => {
+        const size = Math.max(modelBounds.width, modelBounds.height, modelBounds.depth);
+        const fovRadians = (CAMERA_FOV * Math.PI) / 180;
+        const distance = (size / TARGET_VIEWPORT_OCCUPANCY) / (2 * Math.tan(fovRadians / 2));
+        return Math.max(distance, 3.5);
+    }, [modelBounds]);
 
     useEffect(() => {
         setIsMobile(window.innerWidth < 768);
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    /* ── Mouse tracking on entire window ── */
+    useEffect(() => {
+        const onMove = (e: MouseEvent) => {
+            mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseRef.current.y = (e.clientY / window.innerHeight) * 2 - 1;
+        };
+        window.addEventListener("mousemove", onMove);
+        return () => {
+            window.removeEventListener("mousemove", onMove);
+        };
     }, []);
 
     useEffect(() => {
@@ -209,6 +319,10 @@ export default function WheelShowcase() {
         }
     }, []);
 
+    const handleBoundsReady = useCallback((bounds: ModelBounds) => {
+        setModelBounds(bounds);
+    }, []);
+
     return (
         <section ref={sectionRef} className="wheel-section" id="wheel">
             {/* Left: Info Panel */}
@@ -220,7 +334,7 @@ export default function WheelShowcase() {
                     Without Compromise
                 </h2>
                 <p className="wheel-info-desc">
-                    Every AERO wheel begins as a single billet of aerospace-grade aluminum,
+                    Every DRAXLER wheel begins as a single billet of aerospace-grade aluminum,
                     forged under immense pressure and precision-machined to tolerances
                     measured in microns.
                 </p>
@@ -287,47 +401,57 @@ export default function WheelShowcase() {
 
             {/* Right: 3D Canvas */}
             <div className="wheel-canvas-wrapper">
-                {isMobile ? (
-                    <LoaderFallback />
-                ) : (
-                    <Suspense fallback={<LoaderFallback />}>
-                        <Canvas
-                            camera={{ position: [0, 0, 4], fov: 45 }}
-                            style={{ width: "100%", height: "100%" }}
-                            gl={{ antialias: true, alpha: true }}
-                        >
-                            <ambientLight intensity={0.4} />
-                            <spotLight
-                                position={[5, 5, 5]}
-                                angle={0.3}
-                                penumbra={0.8}
-                                intensity={2}
-                                castShadow
-                                color="#fff"
-                            />
-                            <spotLight
-                                position={[-5, -2, 3]}
-                                angle={0.4}
-                                penumbra={1}
-                                intensity={1}
-                                color="#b0b0b0"
-                            />
-                            <directionalLight
-                                position={[0, 5, -5]}
-                                intensity={0.6}
-                                color="#e0d0b8"
-                            />
-                            <WheelModel onHotspotClick={handleHotspotClick} />
+                <Suspense fallback={<LoaderFallback />}>
+                    <Canvas
+                        dpr={isMobile ? [1, 1.5] : [1, 2]}
+                        camera={{ position: [0, 0, fitDistance], fov: CAMERA_FOV }}
+                        style={{ width: "100%", height: "100%" }}
+                        gl={{ antialias: !isMobile, alpha: true, powerPreference: "high-performance" }}
+                        onCreated={({ gl }) => {
+                            gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                        }}
+                    >
+                        <AutoFitCamera distance={fitDistance} />
+
+                        <ambientLight intensity={0.4} />
+                        <spotLight
+                            position={[5, 5, 5]}
+                            angle={0.3}
+                            penumbra={0.8}
+                            intensity={2}
+                            castShadow={!isMobile}
+                            color="#fff"
+                        />
+                        <spotLight
+                            position={[-5, -2, 3]}
+                            angle={0.4}
+                            penumbra={1}
+                            intensity={1}
+                            color="#b0b0b0"
+                        />
+                        <directionalLight
+                            position={[0, 5, -5]}
+                            intensity={0.6}
+                            color="#e0d0b8"
+                        />
+
+                        <WheelModel
+                            onHotspotClick={handleHotspotClick}
+                            onBoundsReady={handleBoundsReady}
+                            mouseRef={mouseRef}
+                        />
+
+                        {!isMobile && (
                             <ContactShadows
-                                position={[0, -1.5, 0]}
-                                opacity={0.4}
-                                scale={5}
+                                position={[0, -2.8, 0]}
+                                opacity={0.35}
+                                scale={6}
                                 blur={2.5}
                             />
-                            <Environment preset="city" />
-                        </Canvas>
-                    </Suspense>
-                )}
+                        )}
+                        <Environment preset="city" />
+                    </Canvas>
+                </Suspense>
             </div>
         </section>
     );

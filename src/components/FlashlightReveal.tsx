@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, CSSProperties } from "react";
-/* gsap removed — this component uses pure CSS mask + vanilla JS */
+// Pure CSS mask + vanilla JS — no GSAP needed
 
 
 export default function FlashlightReveal() {

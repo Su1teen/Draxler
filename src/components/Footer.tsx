@@ -57,8 +57,8 @@ export default function Footer() {
         <footer className="footer-section">
             <div className="footer-divider" />
 
-            <div className="footer-logo">AERO</div>
-            <div className="footer-tagline">Forged For The Future</div>
+            <div className="footer-logo">DRAXLER</div>
+            <div className="footer-tagline">Engineered For Excellence</div>
 
             <div ref={wrapperRef} className="magnetic-btn-wrapper">
                 <button ref={btnRef} className="magnetic-btn">
@@ -103,7 +103,7 @@ export default function Footer() {
             </div>
 
             <div className="footer-copyright">
-                © 2026 AERO. ALL RIGHTS RESERVED.
+                © 2026 DRAXLER. ALL RIGHTS RESERVED.
             </div>
         </footer>
     );

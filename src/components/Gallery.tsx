@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -10,21 +10,61 @@ if (typeof window !== "undefined") {
 
 const galleryItems = [
     {
-        src: "/media/car-image-1.jpg",
-        name: "Any Size"
+        src: "/gallery/any%20style.mp4",
+        name: "Any Style"
     },
     {
-        src: "/media/car-image-2.jpg",
+        src: "/gallery/any%20design.mp4",
         name: "Any Design"
     },
     {
-        src: "/media/car-image-3.jpg",
+        src: "/gallery/any%20wheels.mp4",
         name: "Any Wheels"
     },
 ];
 
 export default function Gallery() {
     const sectionRef = useRef<HTMLDivElement>(null);
+    const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+    const [playingStates, setPlayingStates] = useState<boolean[]>([false, false, false]);
+
+    const handleVideoEnter = (index: number) => {
+        const video = videoRefs.current[index];
+        if (!video) return;
+
+        setPlayingStates((prev) => {
+            const next = [...prev];
+            next[index] = true;
+            return next;
+        });
+
+        const playPromise = video.play();
+        if (playPromise) {
+            playPromise
+                .then(() => {
+                    // playing state is set optimistically on hover enter
+                })
+                .catch(() => {
+                    setPlayingStates((prev) => {
+                        const next = [...prev];
+                        next[index] = false;
+                        return next;
+                    });
+                    // no-op: browser may block play before user interaction in some edge cases
+                });
+        }
+    };
+
+    const handleVideoLeave = (index: number) => {
+        const video = videoRefs.current[index];
+        if (!video) return;
+        video.pause();
+        setPlayingStates((prev) => {
+            const next = [...prev];
+            next[index] = false;
+            return next;
+        });
+    };
 
     useEffect(() => {
         const ctx = gsap.context(() => {
@@ -76,8 +116,8 @@ export default function Gallery() {
 
     return (
         <section ref={sectionRef} className="gallery-section" id="gallery">
-            <div className="gallery-section-label">Featured Vehicles</div>
-            <h2 className="gallery-section-title">Built For Icons</h2>
+            <div className="gallery-section-label">LIMITLESS CUSTOMIZATION</div>
+            <h2 className="gallery-section-title">From Concept To Reality</h2>
 
             {/* Stable outer wrapper — fixed height, overflow hidden.
                 Hover-driven flex changes happen INSIDE this box,
@@ -85,12 +125,26 @@ export default function Gallery() {
             <div className="gallery-stable-wrapper">
                 <div className="gallery-container">
                     {galleryItems.map((item, index) => (
-                        <div key={index} className="gallery-pillar">
-                            <img
+                        <div
+                            key={index}
+                            className="gallery-pillar"
+                            onMouseEnter={() => handleVideoEnter(index)}
+                            onMouseLeave={() => handleVideoLeave(index)}
+                        >
+                            <video
+                                ref={(el) => {
+                                    videoRefs.current[index] = el;
+                                }}
                                 src={item.src}
-                                alt={item.name}
-                                loading="lazy"
+                                className="gallery-pillar-media"
+                                muted
+                                loop
+                                playsInline
+                                preload="metadata"
                             />
+                            {!playingStates[index] && (
+                                <div className="gallery-pillar-pause-dim" />
+                            )}
                             <div className="gallery-pillar-overlay">
                                 <div>
                                     <div className="gallery-pillar-name">{item.name}</div>

@@ -4,9 +4,9 @@ import LenisProvider from "@/components/LenisProvider";
 import ThemeProvider from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "AERO — Forged Perfection | Ultra-Premium Automotive Wheels",
+  title: "DRAXLER — Engineered Excellence | Premium Performance Wheels",
   description:
-    "AERO crafts ultra-premium forged wheels for the world's finest supercars. Experience perfection through aerospace-grade engineering and bespoke artistry.",
+    "DRAXLER crafts premium forged wheels for high-performance supercars. Experience engineering excellence through precision forging and meticulous craftsmanship.",
 };
 
 export default function RootLayout({

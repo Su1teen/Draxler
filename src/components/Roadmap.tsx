@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -8,39 +9,100 @@ if (typeof window !== "undefined") {
     gsap.registerPlugin(ScrollTrigger);
 }
 
-const steps = [
+type StepActionType = "catalog" | "quote" | "configurator";
+
+interface StepAction {
+    label: string;
+    variant: "primary" | "secondary";
+    action: StepActionType;
+}
+
+interface RoadmapStep {
+    number: string;
+    title: string;
+    desc: string;
+    actions: StepAction[];
+}
+
+const steps: RoadmapStep[] = [
     {
         number: "01",
-        title: "Design",
-        desc: "Every wheel begins as a digital sculpture. Our engineers use parametric CAD to define spoke geometry, load paths, and aerodynamic profiles before a single gram of metal is cut.",
+        title: "Consultation & Design",
+        desc: "Start by selecting a model from our Signature Collection, providing your own sketches, or collaborating with our designers to create a unique masterpiece from scratch.",
+        actions: [
+            { label: "Explore Catalog", variant: "primary", action: "catalog" },
+            { label: "Request Quote", variant: "secondary", action: "quote" },
+        ],
     },
     {
         number: "02",
-        title: "Engineering",
-        desc: "Finite Element Analysis simulates extreme forces — cornering, braking, curb impacts — ensuring each design exceeds JWL, VIA, and TÜV load ratings with margin to spare.",
+        title: "Engineering & FEA",
+        desc: "Safety is paramount. Every design undergoes Finite Element Analysis (FEA). We optimize the 3D model for your specific vehicle parameters to guarantee performance.",
+        actions: [{ label: "Request Quote", variant: "secondary", action: "quote" }],
     },
     {
         number: "03",
-        title: "Forging",
-        desc: "A solid billet of 6061-T6 aluminium is pressed under 8,000 tonnes of force. The grain structure aligns directionally, delivering strength-to-weight ratios cast wheels cannot achieve.",
+        title: "Interactive 3D Configuration",
+        desc: "Immerse yourself in our real-time 3D studio. Select your vehicle, experiment with finishes, and inspect the wheel geometry from every angle.",
+        actions: [{ label: "Explore Configurator", variant: "primary", action: "configurator" }],
     },
     {
         number: "04",
-        title: "Machining",
-        desc: "5-axis CNC machines carve each spoke face, barrel, and lip to ±0.02 mm tolerance. Diamond-tipped tools produce surfaces so precise they become mirrors.",
+        title: "Precision CNC Machining",
+        desc: "Precision in motion. Our multi-axis CNC mills carve the design with micron-level tolerance, transforming the raw forged billet into a work of engineering art.",
+        actions: [{ label: "Request Quote", variant: "secondary", action: "quote" }],
     },
     {
         number: "05",
-        title: "Finishing",
-        desc: "Layers of primer, pigmented base coat, and PVD clear seal protect against UV, brake dust, and road salts. Each wheel is hand-inspected under polarized light before shipping.",
+        title: "Hand Finishing",
+        desc: "The final touch. From hand-brushing to powder coating, our artisans apply the finish with meticulous care. Every wheel undergoes a rigorous quality control inspection.",
+        actions: [{ label: "Request Quote", variant: "secondary", action: "quote" }],
     },
 ];
 
 export default function Roadmap() {
+    const router = useRouter();
     const sectionRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const [activeStep, setActiveStep] = useState<number | null>(null);
     const timelineRef = useRef<gsap.core.Timeline | null>(null);
+    const hasAutoOpenedRef = useRef(false);
+
+    const smoothScrollTo = useCallback((targetY: number, duration = 1300) => {
+        const startY = window.scrollY || window.pageYOffset;
+        const distance = targetY - startY;
+        const startTime = performance.now();
+
+        const easeInOutCubic = (time: number) =>
+            time < 0.5 ? 4 * time * time * time : 1 - Math.pow(-2 * time + 2, 3) / 2;
+
+        const stepFrame = (now: number) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = easeInOutCubic(progress);
+
+            window.scrollTo(0, startY + distance * eased);
+
+            if (progress < 1) {
+                requestAnimationFrame(stepFrame);
+            }
+        };
+
+        requestAnimationFrame(stepFrame);
+    }, []);
+
+    const handleAction = useCallback((action: StepActionType) => {
+        if (action === "catalog" || action === "quote") {
+            router.push("/catalog");
+            return;
+        }
+
+        const configurator = document.querySelector(".car-configurator-section") as HTMLElement | null;
+        if (!configurator) return;
+
+        const target = configurator.getBoundingClientRect().top + window.scrollY;
+        smoothScrollTo(target, 1400);
+    }, [router, smoothScrollTo]);
 
     // Entrance animation
     useEffect(() => {
@@ -83,6 +145,28 @@ export default function Roadmap() {
         });
 
         return () => ctx.revert();
+    }, []);
+
+    useEffect(() => {
+        if (!sectionRef.current) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0];
+                if (!entry || !entry.isIntersecting) return;
+                if (hasAutoOpenedRef.current) return;
+
+                hasAutoOpenedRef.current = true;
+                setActiveStep(0);
+            },
+            {
+                threshold: 0.35,
+            }
+        );
+
+        observer.observe(sectionRef.current);
+
+        return () => observer.disconnect();
     }, []);
 
     const handleStepClick = useCallback((index: number) => {
@@ -236,7 +320,17 @@ export default function Roadmap() {
                                     </div>
                                     <h3 className="rm-reveal-heading">{active.title}</h3>
                                     <p className="rm-reveal-desc">{active.desc}</p>
-                                    <button className="rm-reveal-btn">Details</button>
+                                    <div className="rm-reveal-actions">
+                                        {active.actions.map((action) => (
+                                            <button
+                                                key={action.label}
+                                                className={`rm-reveal-btn rm-reveal-btn--${action.variant}`}
+                                                onClick={() => handleAction(action.action)}
+                                            >
+                                                {action.label}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>

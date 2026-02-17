@@ -102,7 +102,7 @@ export default function Hero() {
                     loop
                     playsInline
                     preload="auto"
-                    src="/media/video.mp4"
+                    src="/media/.mp4"
                 />
             </div>
 
