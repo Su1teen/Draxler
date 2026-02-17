@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import HeroSlider from "./HeroSlider";
 
 if (typeof window !== "undefined") {
     gsap.registerPlugin(ScrollTrigger);
@@ -96,17 +97,8 @@ export default function Hero() {
     return (
         <section ref={sectionRef} className="hero-section" id="hero">
             <div ref={videoRef} className="hero-video-wrapper">
-                <video
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    src="/media/.mp4"
-                />
+                <HeroSlider />
             </div>
-
-            <div className="hero-overlay" />
 
             <div ref={contentRef} className="hero-content">
                 <h1 ref={titleRef} className="hero-title">

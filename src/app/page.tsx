@@ -6,13 +6,12 @@ import AeroLoader from "@/components/AeroLoader";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Gallery from "@/components/Gallery";
+import HomeCatalogPreview from "@/components/HomeCatalogPreview";
 // Dynamically import WheelShowcase with SSR disabled to avoid Three.js/WebGL server build issues
 const WheelShowcase = dynamic(() => import("@/components/WheelShowcase"), { ssr: false });
 const CarConfigurator = dynamic(() => import("@/components/CarConfigurator"), { ssr: false });
-import SocialGrid from "@/components/SocialGrid";
 import ParallaxDivider from "@/components/ParallaxDivider";
 import Roadmap from "@/components/Roadmap";
-import FlashlightReveal from "@/components/FlashlightReveal";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -39,9 +38,10 @@ export default function Home() {
         <WheelShowcase />
         <Roadmap />
         <ParallaxDivider />
-        <SocialGrid />
+        <HomeCatalogPreview />
+        {/* <SocialGrid /> */}
         <CarConfigurator />
-        <FlashlightReveal />
+        {/* <FlashlightReveal /> */}
         <Footer />
       </div>
     </main>

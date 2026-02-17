@@ -21,6 +21,7 @@ interface RoadmapStep {
     number: string;
     title: string;
     desc: string;
+    image: string;
     actions: StepAction[];
 }
 
@@ -29,6 +30,7 @@ const steps: RoadmapStep[] = [
         number: "01",
         title: "Consultation & Design",
         desc: "Start by selecting a model from our Signature Collection, providing your own sketches, or collaborating with our designers to create a unique masterpiece from scratch.",
+        image: "/roadmap/Consultation.png",
         actions: [
             { label: "Explore Catalog", variant: "primary", action: "catalog" },
             { label: "Request Quote", variant: "secondary", action: "quote" },
@@ -38,24 +40,28 @@ const steps: RoadmapStep[] = [
         number: "02",
         title: "Engineering & FEA",
         desc: "Safety is paramount. Every design undergoes Finite Element Analysis (FEA). We optimize the 3D model for your specific vehicle parameters to guarantee performance.",
+        image: "/roadmap/Design.jpg",
         actions: [{ label: "Request Quote", variant: "secondary", action: "quote" }],
     },
     {
         number: "03",
         title: "Interactive 3D Configuration",
         desc: "Immerse yourself in our real-time 3D studio. Select your vehicle, experiment with finishes, and inspect the wheel geometry from every angle.",
+        image: "/roadmap/3D%20modeling.png",
         actions: [{ label: "Explore Configurator", variant: "primary", action: "configurator" }],
     },
     {
         number: "04",
         title: "Precision CNC Machining",
         desc: "Precision in motion. Our multi-axis CNC mills carve the design with micron-level tolerance, transforming the raw forged billet into a work of engineering art.",
+        image: "/roadmap/CNC%20Machining.jpg",
         actions: [{ label: "Request Quote", variant: "secondary", action: "quote" }],
     },
     {
         number: "05",
         title: "Hand Finishing",
         desc: "The final touch. From hand-brushing to powder coating, our artisans apply the finish with meticulous care. Every wheel undergoes a rigorous quality control inspection.",
+        image: "/roadmap/Final.jpg",
         actions: [{ label: "Request Quote", variant: "secondary", action: "quote" }],
     },
 ];
@@ -307,7 +313,7 @@ export default function Roadmap() {
                                 {/* Image side */}
                                 <div className="rm-reveal-image-wrap">
                                     <img
-                                        src="/media/car-image-2.jpg"
+                                        src={active.image}
                                         alt={active.title}
                                         className="rm-reveal-image"
                                     />

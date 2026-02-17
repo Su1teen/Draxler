@@ -66,7 +66,7 @@ function ScrollCamera({
 /*  CarModel – loads the GLB, scales & centres it                     */
 /* ================================================================== */
 function CarModel() {
-    const { scene } = useGLTF("/car-models/mercedes amg gt.glb", undefined, undefined, (loader) => {
+    const { scene } = useGLTF("/car-models/rolls royce ghost.glb", undefined, undefined, (loader) => {
         loader.setMeshoptDecoder(MeshoptDecoder);
     });
     const groupRef = useRef<THREE.Group>(null);
@@ -266,7 +266,7 @@ export default function CarConfigurator() {
                 {/* Title (visible during scroll) */}
                 <div className={`car-config-title ${isActive ? "car-config-title--hidden" : ""}`}>
                     <span className="car-config-label">Interactive Experience</span>
-                    <h2 className="car-config-heading">The G-Wagon</h2>
+                    <h2 className="car-config-heading">The Rolls-Royce Ghost</h2>
                 </div>
 
                 {/* Enter button */}
