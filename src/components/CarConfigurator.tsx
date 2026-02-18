@@ -100,7 +100,7 @@ function CarModel() {
     );
 }
 
-useGLTF.preload("/car-models/g-wagon-draco.glb", true);
+
 
 /* ================================================================== */
 /*  ReflectiveFloor                                                   */

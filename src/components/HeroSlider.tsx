@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -80,14 +79,12 @@ export default function HeroSlider() {
                         scale: { duration: 4.5, ease: "linear" },
                     }}
                 >
-                    <Image
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                         src={HERO_IMAGES[activeIndex]}
                         alt="DRAXLER Hero"
-                        fill
-                        sizes="100vw"
-                        priority={activeIndex === 0}
-                        loading={activeIndex === 0 ? "eager" : "lazy"}
                         className="hero-slide-image"
+                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                     />
                 </motion.div>
             </AnimatePresence>
