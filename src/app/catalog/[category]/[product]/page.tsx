@@ -35,11 +35,11 @@ const METAL_FINISHES: MetalFinish[] = [
 ];
 
 const GALLERY_IMAGES = [
-    "/catalog/bentley2.png",
-    "/catalog/bentley1.png",
-    "/catalog/bentley3.png",
-    "/catalog/porshce1.png",
-    "/catalog/porshce2.png",
+    "/catalog/bentley2.jpg",
+    "/catalog/bentley1.jpg",
+    "/catalog/bentley3.jpg",
+    "/catalog/porshce1.jpg",
+    "/catalog/porshce2.jpg",
 ] as const;
 
 const GALLERY_SLUGS = new Set(["drx-102", "drx-202", "drx-302"]);
