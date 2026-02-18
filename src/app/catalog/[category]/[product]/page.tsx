@@ -35,8 +35,8 @@ const METAL_FINISHES: MetalFinish[] = [
 ];
 
 const GALLERY_IMAGES = [
-    "/catalog/bentley1.png",
     "/catalog/bentley2.png",
+    "/catalog/bentley1.png",
     "/catalog/bentley3.png",
     "/catalog/porshce1.png",
     "/catalog/porshce2.png",
@@ -292,6 +292,7 @@ export default function ProductDetailPage() {
 
             {showGallery && (
                 <section className="pdp-gallery-section" aria-label="Gallery">
+                    <h2 className="pdp-gallery-title">G A L L E R Y</h2>
                     <div className="pdp-gallery-grid">
                         {GALLERY_IMAGES.map((imageSrc, index) => (
                             <button

@@ -3683,48 +3683,65 @@ html.lenis body {
   /* Break out of page horizontal padding so gallery spans full viewport */
   width: 100vw;
   margin-left: calc(50% - 50vw);
+  padding-top: clamp(24px, 2.8vw, 48px);
 }
 
+.pdp-gallery-title {
+  margin: 0;
+  padding: 0 clamp(20px, 5vw, 80px) clamp(16px, 2vw, 30px);
+  color: rgba(255, 255, 255, 0.72);
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(0.9rem, 0.7vw, 1.05rem);
+  font-weight: 400;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+}
+
+/*
+  3 explicit rows, all the same height → compact.
+  clamp(120px, 14vw, 220px) at 1920px = 220px → total ≈ 660px,
+  at 1440px = 201px → total ≈ 603px.
+  Hero tile (col 1) spans rows 1+2, matching the two stacked tiles on the right.
+*/
 .pdp-gallery-grid {
+  --pdp-gallery-diagonal-cut: clamp(22px, 2.6vw, 56px);
   display: grid;
   grid-template-columns: 58fr 42fr;
-  grid-template-rows: auto auto auto;
+  grid-template-rows: clamp(96px, 10vw, 184px) clamp(96px, 10vw, 184px) clamp(122px, 13.4vw, 246px);
   gap: 0;
+  position: relative;
 }
 
-/* img-0 — tall hero tile, spans 2 rows on the left */
+
+
+/* img-0 — hero tile, spans rows 1+2 on the left */
 .pdp-gallery-item--0 {
   grid-column: 1 / 2;
   grid-row: 1 / 3;
-  aspect-ratio: 16 / 18; /* tall: two 16/9 rows stacked */
 }
 
 /* img-1 — top-right */
 .pdp-gallery-item--1 {
   grid-column: 2 / 3;
   grid-row: 1 / 2;
-  aspect-ratio: 16 / 9;
 }
 
-/* img-2 — bottom-right */
+/* img-2 — mid-right */
 .pdp-gallery-item--2 {
   grid-column: 2 / 3;
   grid-row: 2 / 3;
-  aspect-ratio: 16 / 9;
 }
 
-/* img-3 — bottom-left of bottom row, spans full width cols 1-2 */
+/* img-3 — bottom-left */
 .pdp-gallery-item--3 {
   grid-column: 1 / 2;
   grid-row: 3 / 4;
-  aspect-ratio: 16 / 9;
 }
 
-/* img-4 — bottom-right of bottom row */
+/* img-4 — bottom-right */
 .pdp-gallery-item--4 {
   grid-column: 2 / 3;
   grid-row: 3 / 4;
-  aspect-ratio: 16 / 9;
 }
 
 .pdp-gallery-item {
@@ -3737,6 +3754,38 @@ html.lenis body {
   overflow: hidden;
   display: block;
   width: 100%;
+  z-index: 1;
+}
+
+.pdp-gallery-item--0,
+.pdp-gallery-item--3 {
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--pdp-gallery-diagonal-cut)) 100%, 0 100%);
+}
+
+/* ITEM 1 (Верхнее фото) */
+/* Shift reduced to cut*0.5 per row for a shallower angle */
+.pdp-gallery-item--1 {
+  clip-path: polygon(
+    calc(var(--pdp-gallery-diagonal-cut) * 1.5) 0,
+    100% 0,
+    100% 100%,
+    var(--pdp-gallery-diagonal-cut) 100%
+  );
+}
+
+/* ITEM 2 (Нижнее фото) */
+/* Starts at cut (seam with img-1), ends at cut*0.5 for shallower angle */
+.pdp-gallery-item--2 {
+  clip-path: polygon(
+    var(--pdp-gallery-diagonal-cut) 0,
+    100% 0,
+    100% 100%,
+    calc(var(--pdp-gallery-diagonal-cut) * 0.5) 100%
+  );
+}
+
+.pdp-gallery-item--4 {
+  clip-path: polygon(var(--pdp-gallery-diagonal-cut) 0, 100% 0, 100% 100%, 0 100%);
 }
 
 .pdp-gallery-image {
@@ -3869,8 +3918,9 @@ html.lenis body {
     padding: 1.25rem 1.5rem 0.75rem;
   }
 
-  .pdp-gallery-section {
-    /* full-bleed stays — no extra padding on mobile */
+  .pdp-gallery-title {
+    padding: 0 1.5rem 1rem;
+    letter-spacing: 0.38em;
   }
 
   .pdp-gallery-grid {
@@ -3884,7 +3934,21 @@ html.lenis body {
   .pdp-gallery-item--4 {
     grid-column: 1 / 2 !important;
     grid-row: auto !important;
-    aspect-ratio: 16 / 9 !important;
+    clip-path: none !important;
+    /* no forced aspect-ratio — let natural image height define the cell */
+    height: auto;
+  }
+
+  /* Images flow at their natural dimensions on mobile */
+  .pdp-gallery-item--0 .pdp-gallery-image,
+  .pdp-gallery-item--1 .pdp-gallery-image,
+  .pdp-gallery-item--2 .pdp-gallery-image,
+  .pdp-gallery-item--3 .pdp-gallery-image,
+  .pdp-gallery-item--4 .pdp-gallery-image {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
   }
 
   .pdp-gallery-modal {
