@@ -8,6 +8,7 @@ import {
     useMemo,
     useCallback,
 } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
     useGLTF,
@@ -19,6 +20,7 @@ import {
 import * as THREE from "three";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Check, LoaderCircle, X } from "lucide-react";
 import ConfiguratorHUD from "./ConfiguratorHUD";
 
 if (typeof window !== "undefined") {
@@ -132,7 +134,15 @@ export default function CarConfigurator() {
     const scrollProgress = useRef(0);
     const [isActive, setIsActive] = useState(false);
     const [showButton, setShowButton] = useState(false);
-    const buttonRef = useRef<HTMLButtonElement>(null);
+    const [selectedModel, setSelectedModel] = useState("BMW M340i");
+    const [selectedWheelModel, setSelectedWheelModel] = useState("DRX-101");
+    const [showFinalize, setShowFinalize] = useState(false);
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitSuccess, setSubmitSuccess] = useState(false);
+    const [isShiftPressed, setIsShiftPressed] = useState(false);
 
     /* ── GSAP: pin section + drive scrollProgress ── */
     useEffect(() => {
@@ -162,27 +172,27 @@ export default function CarConfigurator() {
         return () => ctx.revert();
     }, [isActive]);
 
-    /* ── Fade button in/out ── */
     useEffect(() => {
-        if (!buttonRef.current) return;
-        if (showButton && !isActive) {
-            gsap.to(buttonRef.current, {
-                opacity: 1,
-                y: 0,
-                duration: 0.8,
-                ease: "power3.out",
-                pointerEvents: "auto",
-            });
-        } else {
-            gsap.to(buttonRef.current, {
-                opacity: 0,
-                y: 20,
-                duration: 0.4,
-                ease: "power2.in",
-                pointerEvents: "none",
-            });
-        }
-    }, [showButton, isActive]);
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Shift") setIsShiftPressed(true);
+        };
+
+        const onKeyUp = (event: KeyboardEvent) => {
+            if (event.key === "Shift") setIsShiftPressed(false);
+        };
+
+        const onBlur = () => setIsShiftPressed(false);
+
+        window.addEventListener("keydown", onKeyDown);
+        window.addEventListener("keyup", onKeyUp);
+        window.addEventListener("blur", onBlur);
+
+        return () => {
+            window.removeEventListener("keydown", onKeyDown);
+            window.removeEventListener("keyup", onKeyUp);
+            window.removeEventListener("blur", onBlur);
+        };
+    }, []);
 
     const handleEnter = useCallback(() => {
         setIsActive(true);
@@ -191,7 +201,52 @@ export default function CarConfigurator() {
 
     const handleExit = useCallback(() => {
         setIsActive(false);
+        setShowFinalize(false);
     }, []);
+
+    const canShowActionButton = isActive || showButton;
+
+    const handleCloseFinalize = useCallback(() => {
+        setShowFinalize(false);
+        setSubmitSuccess(false);
+        setIsSubmitting(false);
+    }, []);
+
+    const handleSubmitLead = useCallback(async () => {
+        if (!name.trim() || !email.trim() || !phone.trim()) return;
+
+        setIsSubmitting(true);
+        try {
+            const response = await fetch("/api/configurator-lead", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    selectedCarModel: selectedModel,
+                    selectedWheelModel,
+                    customer: {
+                        name: name.trim(),
+                        email: email.trim(),
+                        phone: phone.trim(),
+                    },
+                }),
+            });
+
+            if (!response.ok) throw new Error("Failed to submit lead");
+
+            setSubmitSuccess(true);
+            setTimeout(() => {
+                setShowFinalize(false);
+                setName("");
+                setEmail("");
+                setPhone("");
+                setSubmitSuccess(false);
+            }, 1300);
+        } catch {
+            setSubmitSuccess(false);
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [email, name, phone, selectedModel, selectedWheelModel]);
 
     return (
         <section ref={sectionRef} className="car-configurator-section" id="configurator">
@@ -245,6 +300,7 @@ export default function CarConfigurator() {
                 {isActive && (
                     <OrbitControls
                         enablePan={false}
+                        enableZoom={isShiftPressed}
                         minPolarAngle={0}
                         maxPolarAngle={Math.PI / 2 - 0.1}
                         minDistance={4}
@@ -262,38 +318,156 @@ export default function CarConfigurator() {
 
             {/* UI Overlay */}
             <div className="car-config-overlay">
-                {/* Title (visible during scroll) */}
                 <div className={`car-config-title ${isActive ? "car-config-title--hidden" : ""}`}>
                     <span className="car-config-label">Interactive Experience</span>
-                    <h2 className="car-config-heading">The Rolls-Royce Ghost</h2>
+                    <h2 className="car-config-heading" style={{ fontWeight: 600, color: "#000000" }}>
+                        The BMW M340i
+                    </h2>
                 </div>
 
-                {/* Enter button */}
-                <button
-                    ref={buttonRef}
-                    className="car-config-enter-btn"
-                    onClick={handleEnter}
-                >
-                    Enter Configurator
-                </button>
-
-                {/* Exit button — visible only in configurator mode */}
-                {isActive && (
-                    <button className="car-config-exit-btn" onClick={handleExit}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                        <span>Exit</span>
-                    </button>
-                )}
+                <AnimatePresence>
+                    {canShowActionButton && (
+                        <motion.div
+                            className="car-config-action-anchor"
+                            style={{
+                                position: "absolute",
+                                bottom: "80px",
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                zIndex: 50,
+                            }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                            <AnimatePresence mode="wait">
+                                {!isActive ? (
+                                    <motion.button
+                                        key="enter"
+                                        className="car-config-action-btn"
+                                        onClick={handleEnter}
+                                        initial={{ opacity: 0, scale: 0.94, filter: "blur(6px)" }}
+                                        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                                        exit={{ opacity: 0, scale: 1.03, filter: "blur(4px)" }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        Enter Configurator
+                                    </motion.button>
+                                ) : (
+                                    <motion.button
+                                        key="exit"
+                                        className="car-config-action-btn car-config-action-btn--exit"
+                                        onClick={handleExit}
+                                        initial={{ opacity: 0, scale: 0.96, filter: "blur(6px)" }}
+                                        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                                        exit={{ opacity: 0, scale: 1.03, filter: "blur(4px)" }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <X size={16} />
+                                        <span>Exit</span>
+                                    </motion.button>
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
-            {/* HUD Sidebars – only when configurator is active */}
             <ConfiguratorHUD
                 active={isActive}
-                onSelectModel={() => {}}
+                onSelectModel={(label) => setSelectedModel(label)}
+                onSelectWheelModel={(wheel) => setSelectedWheelModel(wheel)}
+                onOpenFinalize={() => setShowFinalize(true)}
             />
+
+            <AnimatePresence>
+                {isActive && !showFinalize && (
+                    <motion.div
+                        className="car-config-summary"
+                        initial={{ opacity: 0, x: 26, y: 18 }}
+                        animate={{ opacity: 1, x: 0, y: 0 }}
+                        exit={{ opacity: 0, x: 16, y: 10 }}
+                    >
+                        <span className="car-config-summary-label">Current Build</span>
+                        <h4>Your {selectedModel} on {selectedWheelModel}</h4>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {isActive && showFinalize && (
+                    <motion.div
+                        className="config-lead-modal-backdrop"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div
+                            className="config-lead-modal"
+                            initial={{ opacity: 0, y: 30, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 18, scale: 0.98 }}
+                        >
+                            <button className="config-lead-close" onClick={handleCloseFinalize}>
+                                <X size={15} />
+                            </button>
+
+                            <h3>Request Quote</h3>
+                            <p>Your {selectedModel} on {selectedWheelModel}</p>
+
+                            <div className="config-lead-step-content">
+                                <label>Name</label>
+                                <input
+                                    className="config-lead-input"
+                                    value={name}
+                                    onChange={(event) => setName(event.target.value)}
+                                    placeholder="Your name"
+                                />
+
+                                <label>Email</label>
+                                <input
+                                    className="config-lead-input"
+                                    type="email"
+                                    value={email}
+                                    onChange={(event) => setEmail(event.target.value)}
+                                    placeholder="name@email.com"
+                                />
+
+                                <label>Phone</label>
+                                <input
+                                    className="config-lead-input"
+                                    value={phone}
+                                    onChange={(event) => setPhone(event.target.value)}
+                                    placeholder="+1 (___) ___-____"
+                                />
+
+                                <div className="config-lead-actions">
+                                    <button
+                                        className="config-lead-submit"
+                                        onClick={handleSubmitLead}
+                                        disabled={!name.trim() || !email.trim() || !phone.trim() || isSubmitting || submitSuccess}
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <LoaderCircle size={16} className="spin" />
+                                                <span>Sending...</span>
+                                            </>
+                                        ) : submitSuccess ? (
+                                            <>
+                                                <Check size={16} />
+                                                <span>Sent</span>
+                                            </>
+                                        ) : (
+                                            <span>Send Request</span>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </section>
     );
 }

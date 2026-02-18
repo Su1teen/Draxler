@@ -1519,7 +1519,7 @@ html.lenis body {
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  background: #f2f2f5;
+  background: radial-gradient(circle at 20% 15%, #1f1f22 0%, #0f0f11 45%, #060606 100%);
 }
 
 .car-config-overlay {
@@ -1550,9 +1550,10 @@ html.lenis body {
 .car-config-label {
   font-family: 'Manrope', sans-serif;
   font-size: 0.7rem;
-  letter-spacing: 0.4em;
+  letter-spacing: 0.5em;
   text-transform: uppercase;
-  color: rgba(100, 100, 100, 0.9);
+  font-weight: 300;
+  color: #000000;
   display: block;
   margin-bottom: 0.5rem;
 }
@@ -1560,77 +1561,243 @@ html.lenis body {
 .car-config-heading {
   font-family: 'Manrope', sans-serif;
   font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 800;
-  color: #111;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: #000000;
   line-height: 1.1;
 }
 
-.car-config-enter-btn {
-  pointer-events: auto;
-  opacity: 0;
-  transform: translateY(20px);
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: #111;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 1rem 3rem;
-  border-radius: 100px;
-  cursor: pointer;
-  transition: background 0.3s ease-out, color 0.3s ease-out, border-color 0.3s ease-out;
-}
-
-.car-config-enter-btn:hover {
-  background: #111;
-  color: #fff;
-  border-color: #111;
-}
-
-/* Exit button */
-.car-config-exit-btn {
-  pointer-events: auto;
+.car-config-action-anchor {
+  pointer-events: none;
   position: absolute;
-  top: 2rem;
-  right: 2rem;
-  z-index: 25;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  left: 50%;
+  bottom: 2.5rem;
+  transform: translateX(-50%);
+}
+
+.car-config-action-btn {
+  pointer-events: auto;
   font-family: 'Manrope', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.34em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.6);
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #000000;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  padding: 0.95rem 2.4rem;
   border-radius: 100px;
-  padding: 0.6rem 1.2rem;
   cursor: pointer;
-  transition: all 0.3s ease-out;
-  animation: badgeFadeIn 0.6s ease forwards;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: transform 0.28s ease, border-color 0.28s ease, background 0.28s ease, color 0.28s ease;
 }
 
-.car-config-exit-btn:hover {
-  background: rgba(0, 0, 0, 0.85);
-  color: #fff;
-  border-color: rgba(0, 0, 0, 0.85);
+.car-config-action-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #000000;
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.car-config-exit-btn:hover svg {
-  stroke: #fff;
+.car-config-action-btn--exit {
+  color: #000000;
 }
 
-@keyframes badgeFadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+.car-config-summary {
+  position: absolute;
+  right: 2rem;
+  bottom: 2rem;
+  z-index: 24;
+  width: min(360px, calc(100% - 1.5rem));
+  padding: 1rem 1.1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(14, 14, 20, 0.62);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.38);
+}
+
+.car-config-summary-label {
+  display: block;
+  font-size: 0.58rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(205, 205, 221, 0.48);
+  margin-bottom: 0.45rem;
+}
+
+.car-config-summary h4 {
+  font-size: 0.95rem;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: rgba(249, 249, 252, 0.9);
+  line-height: 1.4;
+}
+
+.config-lead-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 38;
+  background: rgba(2, 2, 6, 0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+}
+
+.config-lead-modal {
+  position: relative;
+  width: min(560px, calc(100% - 2rem));
+  border-radius: 24px;
+  padding: 2rem 2.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow:
+    0 18px 52px rgba(0, 0, 0, 0.44),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.config-lead-close {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(238, 238, 245, 0.9);
+  background: rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.config-lead-step {
+  display: block;
+  font-size: 0.58rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(210, 210, 226, 0.52);
+  margin-bottom: 0.65rem;
+}
+
+.config-lead-modal h3 {
+  font-size: 1.45rem;
+  font-weight: 300;
+  letter-spacing: 0.07em;
+  color: #000000;
+}
+
+.config-lead-modal p {
+  margin-top: 0.7rem;
+  margin-bottom: 1.2rem;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 0.88rem;
+  letter-spacing: 0.08em;
+}
+
+.config-lead-step-content {
+  margin-top: 1.8rem;
+  display: grid;
+  gap: 1.15rem;
+}
+
+.config-lead-step-content label {
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  color: rgba(0, 0, 0, 0.56);
+}
+
+.config-lead-input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+  background: transparent;
+  color: #ffffff;
+  caret-color: #ffffff;
+  padding: 0.65rem 0;
+  outline: none;
+  font-size: 1rem;
+  border-radius: 0;
+}
+
+.config-lead-input:focus {
+  border-bottom-color: #ffffff;
+}
+
+.config-lead-input::placeholder {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.config-lead-actions {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: flex-start;
+  margin-top: 1rem;
+}
+
+.config-lead-submit {
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: #000000;
+  padding: 0.72rem 1.15rem;
+  cursor: pointer;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+
+.config-lead-submit {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.config-lead-submit:hover {
+  transform: translateY(-1px);
+}
+
+.config-lead-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.config-lead-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-width: 182px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ========== CONFIGURATOR HUD ========== */
@@ -1642,17 +1809,24 @@ html.lenis body {
   transform: translateY(-50%);
   z-index: 20;
   pointer-events: auto;
-  width: 230px;
-  padding: 1.1rem;
+  width: 270px;
+  padding: 1rem;
   border-radius: 24px;
-  background: rgba(10, 10, 10, 0.55);
-  backdrop-filter: blur(48px) saturate(1.5);
-  -webkit-backdrop-filter: blur(48px) saturate(1.5);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(38px) saturate(1.5);
+  -webkit-backdrop-filter: blur(38px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: none;
   box-shadow:
-    0 24px 72px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
-    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+    0 16px 40px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 1px 0 rgba(255, 255, 255, 0.12) inset;
+}
+
+.hud-panel::-webkit-scrollbar {
+  display: none;
 }
 
 .hud-panel--left {
@@ -1661,19 +1835,61 @@ html.lenis body {
 
 .hud-panel--right {
   right: 2rem;
-  width: 200px;
+  width: 230px;
+}
+
+.hud-brand-logo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+}
+
+.hud-logo-box {
+  width: 100%;
+  min-height: 58px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.hud-logo-box:hover,
+.hud-logo-box--active {
+  border-color: rgba(255, 255, 255, 0.26);
+  transform: scale(1.1);
+}
+
+.hud-logo-image {
+  width: 100%;
+  height: 50px;
+  object-fit: contain;
+  padding: 0.3rem;
+  filter: brightness(0) grayscale(100%) contrast(100%);
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.hud-logo-box:hover .hud-logo-image,
+.hud-logo-box--active .hud-logo-image {
+  filter: brightness(0) grayscale(100%) contrast(100%);
+  opacity: 1;
 }
 
 /* ── Panel header ── */
 .hud-panel-header {
   font-family: 'Manrope', sans-serif;
   font-size: 0.58rem;
-  font-weight: 800;
-  letter-spacing: 0.4em;
+  font-weight: 400;
+  letter-spacing: 0.45em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.28);
+  color: #000000;
   padding: 0.25rem 0.6rem 0.7rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
   margin-bottom: 0.5rem;
 }
 
@@ -1693,14 +1909,14 @@ html.lenis body {
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.55rem 0.55rem;
+  padding: 0.5rem 0.55rem;
   border-radius: 14px;
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Manrope', sans-serif;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.64);
 }
 
 .hud-brand-row:hover {
@@ -1750,8 +1966,8 @@ html.lenis body {
 .hud-brand-name {
   flex: 1;
   font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-weight: 300;
+  letter-spacing: 0.08em;
   text-align: left;
 }
 
@@ -1785,21 +2001,45 @@ html.lenis body {
 
 .hud-model-item {
   font-family: 'Manrope', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 500;
+  font-size: 0.74rem;
+  font-weight: 300;
+  letter-spacing: 0.09em;
   padding: 0.5rem 0.65rem;
   border-radius: 10px;
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.8);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hud-model-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  color: #000000;
+}
+
+.hud-model-item--active {
+  border-color: rgba(255, 255, 255, 0.35);
+  opacity: 1;
+}
+
+.hud-models-wrap {
+  margin-top: 0.7rem;
+}
+
+.hud-models-title {
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #000000;
+  margin-bottom: 0.5rem;
+}
+
+.hud-models-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
 }
 
 .hud-model-item:active {
@@ -1819,21 +2059,164 @@ html.lenis body {
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Manrope', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
-  letter-spacing: 0.01em;
+  font-size: 0.76rem;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.84);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
 }
 
 .hud-wheel-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.16);
+  color: #000000;
 }
 
 .hud-wheel-item--active {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #000000;
+}
+
+.hud-selected-hint {
+  margin-top: 0.68rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.52rem 0.62rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.hud-finalize-btn {
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: #000000;
+  padding: 0.72rem 1rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.hud-finalize-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.hud-wheel-drawer {
+  position: absolute;
+  left: 50%;
+  bottom: 7rem;
+  transform: translateX(-50%);
+  z-index: 28;
+  width: min(760px, calc(100% - 1.5rem));
+  border-radius: 22px;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(24px) saturate(1.45);
+  -webkit-backdrop-filter: blur(24px) saturate(1.45);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.25);
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) 1fr;
+  gap: 1.1rem;
+  align-items: center;
+}
+
+.hud-wheel-drawer-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hud-wheel-drawer-label {
+  display: block;
+  font-size: 0.56rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.56);
+  margin-bottom: 0.3rem;
+}
+
+.hud-wheel-drawer-right h4 {
+  font-size: 1.08rem;
+  font-weight: 300;
+  letter-spacing: 0.14em;
+  color: #000000;
+  margin-bottom: 0.55rem;
+}
+
+.hud-wheel-drawer-right p {
+  color: rgba(0, 0, 0, 0.76);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.hud-wheel-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.08);
+  color: #000000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.hud-wheel-image-wrap {
+  width: min(220px, 100%);
+  transition: transform 0.3s ease;
+}
+
+.hud-wheel-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  filter: grayscale(100%) brightness(0.08) contrast(150%);
+}
+
+.hud-wheel-pick-btn {
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: #000000;
+  padding: 0.76rem 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  letter-spacing: 0.2em;
+  font-size: 0.61rem;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hud-wheel-drawer-actions {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 /* Radio dot */
@@ -1848,9 +2231,9 @@ html.lenis body {
 }
 
 .hud-wheel-item--active .hud-wheel-radio {
-  background: #fff;
-  border-color: #fff;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+  background: #000;
+  border-color: #000;
+  box-shadow: none;
 }
 
 .hud-wheel-item:hover .hud-wheel-radio {
@@ -1871,7 +2254,7 @@ html.lenis body {
   font-size: 0.65rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.35);
+  color: rgba(230, 230, 240, 0.42);
   pointer-events: none;
 }
 
@@ -1879,7 +2262,7 @@ html.lenis body {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(230, 230, 240, 0.4);
 }
 
 .hud-bottom-sep {
@@ -1982,19 +2365,36 @@ html.lenis body {
 
 /* ── Mobile responsive ── */
 @media (max-width: 768px) {
+  .car-config-title {
+    top: 1.7rem;
+    left: 1rem;
+  }
+
+  .car-config-summary {
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+    bottom: 4.7rem;
+  }
+
+  .car-config-action-anchor {
+    bottom: 2.5rem;
+  }
+
   .hud-panel--left {
     left: 0.75rem;
-    width: 190px;
+    width: 206px;
   }
 
   .hud-panel--right {
     right: 0.75rem;
-    width: 165px;
+    width: 184px;
   }
 
   .hud-panel {
     padding: 0.85rem;
     border-radius: 20px;
+    max-height: 62vh;
   }
 
   .hud-brand-mono {
@@ -2010,6 +2410,12 @@ html.lenis body {
 
   .hud-wheel-item {
     font-size: 0.72rem;
+  }
+
+  .hud-wheel-drawer {
+    width: calc(100% - 1rem);
+    bottom: 6.5rem;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -2508,7 +2914,7 @@ html.lenis body {
 .cat-hero {
   position: relative;
   width: 100%;
-  height: clamp(240px, 32vh, 380px);
+  height: clamp(288px, 38.4vh, 456px);
   overflow: hidden;
   margin-top: calc(-1 * 64px);
 }
@@ -2937,7 +3343,7 @@ html.lenis body {
 .pdp-hero {
   position: relative;
   width: 100%;
-  height: clamp(260px, 32vh, 380px);
+  height: clamp(312px, 38.4vh, 456px);
   overflow: hidden;
   margin-top: calc(-1 * var(--navbar-height, 64px));
   display: flex;
@@ -2972,7 +3378,7 @@ html.lenis body {
   position: relative;
   z-index: 2;
   font-family: 'Manrope', sans-serif;
-  font-size: 0.7rem;
+  font-size: 1.05rem;
   font-weight: 300;
   letter-spacing: 0.45em;
   color: rgba(255, 255, 255, 0.6);
