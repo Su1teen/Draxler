@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import gsap from "gsap";
 import { getProductBySlug } from "@/lib/catalog-data";
+import Footer from "@/components/Footer";
 
 /* ═══════════════════════════════════════════ */
 /*         METAL FINISH DEFINITIONS            */
@@ -32,6 +33,14 @@ const METAL_FINISHES: MetalFinish[] = [
     { id: "teal",                 label: "Teal",                 hex: "#2a7a7a", type: "polished" },
     { id: "rose-gold",            label: "Rose Gold",            hex: "#b76e79", type: "brushed" },
 ];
+
+const DRX302_GALLERY_IMAGES = [
+    "/catalog/bentley1.png",
+    "/catalog/bentley2.png",
+    "/catalog/bentley3.png",
+    "/catalog/porshce1.png",
+    "/catalog/porshce2.png",
+] as const;
 
 /* ── Build 3D sphere CSS layers per finish ── */
 function sphereStyle(finish: MetalFinish): React.CSSProperties {
@@ -87,6 +96,7 @@ export default function ProductDetailPage() {
     const result = getProductBySlug(categorySlug, productSlug);
 
     const [selectedFinish, setSelectedFinish] = useState<MetalFinish>(METAL_FINISHES[0]);
+    const [activeGalleryImage, setActiveGalleryImage] = useState<string | null>(null);
     const heroRef = useRef<HTMLDivElement>(null);
 
     /* ── Entrance animations ── */
@@ -132,6 +142,19 @@ export default function ProductDetailPage() {
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
+    useEffect(() => {
+        if (!activeGalleryImage) return;
+
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setActiveGalleryImage(null);
+            }
+        };
+
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [activeGalleryImage]);
+
     /* ── 404 guard ── */
     if (!result) {
         return (
@@ -143,6 +166,16 @@ export default function ProductDetailPage() {
     }
 
     const { product, category } = result;
+    const show302Gallery = product.slug === "drx-302";
+    const showFooter = product.slug === "drx-301" || product.slug === "drx-302" || product.slug === "drx-303";
+
+    const galleryItemClass = (index: number) => {
+        if (index === 0) return "pdp-gallery-item is-hero";
+        if (index === 1) return "pdp-gallery-item is-top";
+        if (index === 2) return "pdp-gallery-item is-mid";
+        if (index === 3) return "pdp-gallery-item is-bottom-left";
+        return "pdp-gallery-item is-bottom-right";
+    };
 
     return (
         <>
@@ -261,6 +294,61 @@ export default function ProductDetailPage() {
                     </div>
                 </div>
             </div>
+
+            {show302Gallery && (
+                <section className="pdp-gallery-section" aria-label="DRX-302 Gallery">
+                    <h2 className="pdp-gallery-title">Gallery</h2>
+                    <div className="pdp-gallery-grid">
+                        {DRX302_GALLERY_IMAGES.map((imageSrc, index) => (
+                            <button
+                                key={imageSrc}
+                                type="button"
+                                className={galleryItemClass(index)}
+                                onClick={() => setActiveGalleryImage(imageSrc)}
+                                aria-label={`Open gallery image ${index + 1}`}
+                            >
+                                <img
+                                    src={imageSrc}
+                                    alt={`${product.name} gallery ${index + 1}`}
+                                    className="pdp-gallery-image"
+                                    draggable={false}
+                                />
+                            </button>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {activeGalleryImage && (
+                <div
+                    className="pdp-gallery-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Gallery image preview"
+                    onClick={() => setActiveGalleryImage(null)}
+                >
+                    <button
+                        type="button"
+                        className="pdp-gallery-close"
+                        onClick={() => setActiveGalleryImage(null)}
+                        aria-label="Close image preview"
+                    >
+                        ×
+                    </button>
+                    <div
+                        className="pdp-gallery-modal-inner"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <img
+                            src={activeGalleryImage}
+                            alt={`${product.name} close-up view`}
+                            className="pdp-gallery-modal-image"
+                        />
+                    </div>
+                </div>
+            )}
+
+            {showFooter && <Footer />}
         </>
     );
 }
