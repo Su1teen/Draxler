@@ -16,7 +16,6 @@ import {
     SoftShadows,
     OrbitControls,
 } from "@react-three/drei";
-import { MeshoptDecoder } from "meshoptimizer";
 import * as THREE from "three";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -66,9 +65,7 @@ function ScrollCamera({
 /*  CarModel – loads the GLB, scales & centres it                     */
 /* ================================================================== */
 function CarModel() {
-    const { scene } = useGLTF("/car-models/rolls royce ghost.glb", undefined, undefined, (loader) => {
-        loader.setMeshoptDecoder(MeshoptDecoder);
-    });
+    const { scene } = useGLTF("/car-models/2020_bmw_m340i_xdrive-v1.glb", true);
     const groupRef = useRef<THREE.Group>(null);
 
     // Compute bounding-box based scale + centre offset once
@@ -100,6 +97,8 @@ function CarModel() {
         </group>
     );
 }
+
+useGLTF.preload("/car-models/g-wagon-draco.glb", true);
 
 /* ================================================================== */
 /*  ReflectiveFloor                                                   */
