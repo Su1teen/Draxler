@@ -3666,74 +3666,102 @@ html.lenis body {
   background: rgba(255, 255, 255, 0.04);
 }
 
-/* ── DRX-302 Gallery ── */
+/* ── Product Gallery (DRX-102 / DRX-202 / DRX-302) ── */
+
+/*
+  Layout: 5 images, zero gap, full viewport width.
+
+  Row 1 (top half):  [img-0 — wide hero, 58 cols] | [img-1 — 42 cols]
+  Row 2 (bottom):    [img-2 — 42 cols]
+  Row 3 (bottom):    [img-3 — 50 cols] | [img-4 — 50 cols]
+
+  Each cell locks to 16:9 via aspect-ratio.
+*/
+
 .pdp-gallery-section {
   background: #000;
-  padding: 0 4rem 6rem;
-}
-
-.pdp-gallery-title {
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 1.4rem;
+  /* Break out of page horizontal padding so gallery spans full viewport */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
 }
 
 .pdp-gallery-grid {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 1rem;
-  grid-auto-rows: minmax(140px, auto);
+  grid-template-columns: 58fr 42fr;
+  grid-template-rows: auto auto auto;
+  gap: 0;
+}
+
+/* img-0 — tall hero tile, spans 2 rows on the left */
+.pdp-gallery-item--0 {
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+  aspect-ratio: 16 / 18; /* tall: two 16/9 rows stacked */
+}
+
+/* img-1 — top-right */
+.pdp-gallery-item--1 {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+  aspect-ratio: 16 / 9;
+}
+
+/* img-2 — bottom-right */
+.pdp-gallery-item--2 {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+  aspect-ratio: 16 / 9;
+}
+
+/* img-3 — bottom-left of bottom row, spans full width cols 1-2 */
+.pdp-gallery-item--3 {
+  grid-column: 1 / 2;
+  grid-row: 3 / 4;
+  aspect-ratio: 16 / 9;
+}
+
+/* img-4 — bottom-right of bottom row */
+.pdp-gallery-item--4 {
+  grid-column: 2 / 3;
+  grid-row: 3 / 4;
+  aspect-ratio: 16 / 9;
 }
 
 .pdp-gallery-item {
   position: relative;
-  width: 100%;
   border: none;
-  background: transparent;
+  background: #111;
   padding: 0;
+  margin: 0;
   cursor: pointer;
   overflow: hidden;
-}
-
-.pdp-gallery-item.is-hero {
-  grid-column: span 7;
-  grid-row: span 2;
-  min-height: 430px;
-}
-
-.pdp-gallery-item.is-top,
-.pdp-gallery-item.is-mid {
-  grid-column: span 5;
-  min-height: 210px;
-}
-
-.pdp-gallery-item.is-bottom-left,
-.pdp-gallery-item.is-bottom-right {
-  grid-column: span 6;
-  min-height: 240px;
+  display: block;
+  width: 100%;
 }
 
 .pdp-gallery-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
-  transition: filter 0.45s ease, transform 0.45s ease;
+  transition: filter 0.45s ease, transform 0.5s ease;
 }
 
 .pdp-gallery-item:hover .pdp-gallery-image {
-  filter: blur(3px);
-  transform: scale(1.03);
+  filter: blur(4px);
+  transform: scale(1.04);
 }
 
+/* Modal */
 .pdp-gallery-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.82);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 150;
   display: flex;
   align-items: center;
@@ -3801,13 +3829,6 @@ html.lenis body {
     padding: 1.5rem 2.5rem 1rem;
   }
 
-  .pdp-gallery-section {
-    padding: 0 2.5rem 4.5rem;
-  }
-
-  .pdp-gallery-item.is-hero {
-    min-height: 360px;
-  }
 }
 
 @media (max-width: 768px) {
@@ -3849,21 +3870,21 @@ html.lenis body {
   }
 
   .pdp-gallery-section {
-    padding: 0 1.5rem 4rem;
+    /* full-bleed stays — no extra padding on mobile */
   }
 
   .pdp-gallery-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
-  .pdp-gallery-item.is-hero,
-  .pdp-gallery-item.is-top,
-  .pdp-gallery-item.is-mid,
-  .pdp-gallery-item.is-bottom-left,
-  .pdp-gallery-item.is-bottom-right {
-    grid-column: span 1;
-    grid-row: span 1;
-    min-height: 220px;
+  .pdp-gallery-item--0,
+  .pdp-gallery-item--1,
+  .pdp-gallery-item--2,
+  .pdp-gallery-item--3,
+  .pdp-gallery-item--4 {
+    grid-column: 1 / 2 !important;
+    grid-row: auto !important;
+    aspect-ratio: 16 / 9 !important;
   }
 
   .pdp-gallery-modal {

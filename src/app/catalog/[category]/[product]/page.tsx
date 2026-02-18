@@ -34,13 +34,16 @@ const METAL_FINISHES: MetalFinish[] = [
     { id: "rose-gold",            label: "Rose Gold",            hex: "#b76e79", type: "brushed" },
 ];
 
-const DRX302_GALLERY_IMAGES = [
+const GALLERY_IMAGES = [
     "/catalog/bentley1.png",
     "/catalog/bentley2.png",
     "/catalog/bentley3.png",
     "/catalog/porshce1.png",
     "/catalog/porshce2.png",
 ] as const;
+
+const GALLERY_SLUGS = new Set(["drx-102", "drx-202", "drx-302"]);
+const FOOTER_SLUGS  = new Set(["drx-101", "drx-102", "drx-201", "drx-202", "drx-301", "drx-302", "drx-303"]);
 
 /* ── Build 3D sphere CSS layers per finish ── */
 function sphereStyle(finish: MetalFinish): React.CSSProperties {
@@ -166,16 +169,8 @@ export default function ProductDetailPage() {
     }
 
     const { product, category } = result;
-    const show302Gallery = product.slug === "drx-302";
-    const showFooter = product.slug === "drx-301" || product.slug === "drx-302" || product.slug === "drx-303";
-
-    const galleryItemClass = (index: number) => {
-        if (index === 0) return "pdp-gallery-item is-hero";
-        if (index === 1) return "pdp-gallery-item is-top";
-        if (index === 2) return "pdp-gallery-item is-mid";
-        if (index === 3) return "pdp-gallery-item is-bottom-left";
-        return "pdp-gallery-item is-bottom-right";
-    };
+    const showGallery = GALLERY_SLUGS.has(product.slug);
+    const showFooter  = FOOTER_SLUGS.has(product.slug);
 
     return (
         <>
@@ -295,15 +290,14 @@ export default function ProductDetailPage() {
                 </div>
             </div>
 
-            {show302Gallery && (
-                <section className="pdp-gallery-section" aria-label="DRX-302 Gallery">
-                    <h2 className="pdp-gallery-title">Gallery</h2>
+            {showGallery && (
+                <section className="pdp-gallery-section" aria-label="Gallery">
                     <div className="pdp-gallery-grid">
-                        {DRX302_GALLERY_IMAGES.map((imageSrc, index) => (
+                        {GALLERY_IMAGES.map((imageSrc, index) => (
                             <button
                                 key={imageSrc}
                                 type="button"
-                                className={galleryItemClass(index)}
+                                className={`pdp-gallery-item pdp-gallery-item--${index}`}
                                 onClick={() => setActiveGalleryImage(imageSrc)}
                                 aria-label={`Open gallery image ${index + 1}`}
                             >
