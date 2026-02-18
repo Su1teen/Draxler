@@ -54,7 +54,7 @@ export default function Footer() {
     }, []);
 
     return (
-        <footer className="footer-section">
+        <footer className="footer-section" id="contact">
             <div className="footer-divider" />
 
             <div className="footer-logo">DRAXLER</div>

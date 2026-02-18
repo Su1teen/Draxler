@@ -2,7 +2,7 @@
 
 import { Suspense, useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useFBX, Environment, Html, ContactShadows } from "@react-three/drei";
+import { useFBX, useGLTF, Environment, Html, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -33,6 +33,7 @@ interface ModelBounds {
 const TARGET_MAX_DIMENSION = 4;
 const TARGET_VIEWPORT_OCCUPANCY = 0.58;
 const CAMERA_FOV = 45;
+const WHEEL_MODEL_PATH = "/media/car%20rim.fbx";
 
 /* ── Parallax look-at constants ── */
 const MAX_TILT_X = THREE.MathUtils.degToRad(15);
@@ -114,6 +115,38 @@ const hotspots: HotspotData[] = [
     },
 ];
 
+function GLBAsset({
+    src,
+    onLoad,
+}: {
+    src: string;
+    onLoad: (model: THREE.Object3D) => void;
+}) {
+    const { scene } = useGLTF(src);
+
+    useEffect(() => {
+        onLoad(scene);
+    }, [scene, onLoad]);
+
+    return null;
+}
+
+function FBXAsset({
+    src,
+    onLoad,
+}: {
+    src: string;
+    onLoad: (model: THREE.Object3D) => void;
+}) {
+    const fbx = useFBX(src);
+
+    useEffect(() => {
+        onLoad(fbx);
+    }, [fbx, onLoad]);
+
+    return null;
+}
+
 function WheelModel({
     onHotspotClick,
     onBoundsReady,
@@ -125,12 +158,31 @@ function WheelModel({
 }) {
     const groupRef = useRef<THREE.Group>(null);
     const targetRotation = useRef({ x: 0, y: 0 });
+    const [rawModel, setRawModel] = useState<THREE.Object3D | null>(null);
 
-    // Load the FBX model
-    const fbx = useFBX("/media/car%20rim.fbx");
+    const modelExtension = useMemo(() => {
+        const cleanPath = WHEEL_MODEL_PATH.split("?")[0];
+        const ext = cleanPath.split(".").pop();
+        return ext?.toLowerCase() ?? "";
+    }, []);
+
+    const useGlbReader = modelExtension === "glb" || modelExtension === "gltf";
 
     const { normalizedModel, normalizedScale, modelOffset, bounds } = useMemo(() => {
-        const cloned = fbx.clone(true);
+        if (!rawModel) {
+            return {
+                normalizedModel: null,
+                normalizedScale: 1,
+                modelOffset: new THREE.Vector3(0, 0, 0),
+                bounds: {
+                    width: TARGET_MAX_DIMENSION,
+                    height: TARGET_MAX_DIMENSION,
+                    depth: TARGET_MAX_DIMENSION,
+                },
+            };
+        }
+
+        const cloned = rawModel.clone(true);
         let centeredGeometry = false;
 
         cloned.traverse((child) => {
@@ -175,7 +227,7 @@ function WheelModel({
                 depth: size.z * scale,
             },
         };
-    }, [fbx]);
+    }, [rawModel]);
 
     useEffect(() => {
         onBoundsReady(bounds);
@@ -193,12 +245,20 @@ function WheelModel({
 
     return (
         <group ref={groupRef}>
-            <primitive
-                object={normalizedModel}
-                scale={[normalizedScale, normalizedScale, normalizedScale]}
-                rotation={[0, -Math.PI / 1.5, 0]}
-                position={[modelOffset.x, modelOffset.y, modelOffset.z]}
-            />
+            {useGlbReader ? (
+                <GLBAsset src={WHEEL_MODEL_PATH} onLoad={setRawModel} />
+            ) : (
+                <FBXAsset src={WHEEL_MODEL_PATH} onLoad={setRawModel} />
+            )}
+
+            {normalizedModel && (
+                <primitive
+                    object={normalizedModel}
+                    scale={[normalizedScale, normalizedScale, normalizedScale]}
+                    rotation={[0, -Math.PI / 1.5, 0]}
+                    position={[modelOffset.x, modelOffset.y, modelOffset.z]}
+                />
+            )}
             {hotspots.map((spot) => (
                 <Html
                     key={spot.id}

@@ -7,8 +7,10 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Gallery from "@/components/Gallery";
 import HomeCatalogPreview from "@/components/HomeCatalogPreview";
+import ForgingFeatures from "@/components/ForgingFeatures";
+import GlobalBespoke from "@/components/GlobalBespoke";
 // Dynamically import WheelShowcase with SSR disabled to avoid Three.js/WebGL server build issues
-const WheelShowcase = dynamic(() => import("@/components/WheelShowcase"), { ssr: false });
+// const WheelShowcase = dynamic(() => import("@/components/WheelShowcase"), { ssr: false });
 const CarConfigurator = dynamic(() => import("@/components/CarConfigurator"), { ssr: false });
 import ParallaxDivider from "@/components/ParallaxDivider";
 import Roadmap from "@/components/Roadmap";
@@ -35,9 +37,14 @@ export default function Home() {
       <div>
         <Hero />
         <Gallery />
-        <WheelShowcase />
+        <ParallaxDivider src="/media/background%202.png" compact>
+          <ForgingFeatures />
+        </ParallaxDivider>
+        {/* <WheelShowcase /> */}
         <Roadmap />
-        <ParallaxDivider />
+        <ParallaxDivider>
+          <GlobalBespoke />
+        </ParallaxDivider>
         <HomeCatalogPreview />
         {/* <SocialGrid /> */}
         <CarConfigurator />

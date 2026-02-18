@@ -115,7 +115,7 @@ export default function Gallery() {
     }, []);
 
     return (
-        <section ref={sectionRef} className="gallery-section" id="gallery">
+        <section ref={sectionRef} className="gallery-section" id="bespoke">
             <div className="gallery-section-label">LIMITLESS CUSTOMIZATION</div>
             <h2 className="gallery-section-title">From Concept To Reality</h2>
 

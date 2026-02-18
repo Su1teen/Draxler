@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -16,47 +16,49 @@ const HERO_IMAGES = [
 ];
 
 const AUTOPLAY_MS = 6400;
+const IMAGE_COUNT = HERO_IMAGES.length;
 
 export default function HeroSlider() {
     const [activeIndex, setActiveIndex] = useState(0);
     const [direction, setDirection] = useState(1);
-    const [manualResetToken, setManualResetToken] = useState(0);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const imageCount = HERO_IMAGES.length;
-
-    const goTo = useCallback((nextIndex: number, fromUser = false) => {
-        setDirection(nextIndex >= activeIndex ? 1 : -1);
-        setActiveIndex(nextIndex);
-        if (fromUser) {
-            setManualResetToken((prev) => prev + 1);
-        }
-    }, [activeIndex]);
-
-    const goNext = useCallback((fromUser = false) => {
-        const nextIndex = (activeIndex + 1) % imageCount;
-        setDirection(1);
-        setActiveIndex(nextIndex);
-        if (fromUser) {
-            setManualResetToken((prev) => prev + 1);
-        }
-    }, [activeIndex, imageCount]);
-
-    const goPrev = useCallback((fromUser = false) => {
-        const prevIndex = (activeIndex - 1 + imageCount) % imageCount;
-        setDirection(-1);
-        setActiveIndex(prevIndex);
-        if (fromUser) {
-            setManualResetToken((prev) => prev + 1);
-        }
-    }, [activeIndex, imageCount]);
-
-    useEffect(() => {
-        const timer = window.setTimeout(() => {
-            goNext(false);
+    // Stable callbacks — use functional updaters to avoid activeIndex dependency
+    const resetTimer = useCallback(() => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => {
+            setDirection(1);
+            setActiveIndex((prev) => (prev + 1) % IMAGE_COUNT);
         }, AUTOPLAY_MS);
+    }, []);
 
-        return () => window.clearTimeout(timer);
-    }, [activeIndex, manualResetToken, goNext]);
+    const goTo = useCallback((nextIndex: number) => {
+        setActiveIndex((prev) => {
+            setDirection(nextIndex >= prev ? 1 : -1);
+            return nextIndex;
+        });
+        resetTimer();
+    }, [resetTimer]);
+
+    const goNext = useCallback(() => {
+        setDirection(1);
+        setActiveIndex((prev) => (prev + 1) % IMAGE_COUNT);
+        resetTimer();
+    }, [resetTimer]);
+
+    const goPrev = useCallback(() => {
+        setDirection(-1);
+        setActiveIndex((prev) => (prev - 1 + IMAGE_COUNT) % IMAGE_COUNT);
+        resetTimer();
+    }, [resetTimer]);
+
+    // Autoplay — start once, reset handled by user interactions
+    useEffect(() => {
+        resetTimer();
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+        };
+    }, [resetTimer]);
 
     const transition = useMemo(
         () => ({ duration: 2.3, ease: [0.16, 1, 0.3, 1] as const }),
@@ -70,12 +72,12 @@ export default function HeroSlider() {
                     key={activeIndex}
                     className="hero-slide"
                     custom={direction}
-                    initial={{ opacity: 0, scale: 1.14 }}
+                    initial={{ opacity: 0, scale: 1.08 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.05 }}
+                    exit={{ opacity: 0, scale: 1.03 }}
                     transition={{
                         opacity: transition,
-                        scale: { duration: 6.6, ease: "linear" },
+                        scale: { duration: 4.5, ease: "linear" },
                     }}
                 >
                     <Image
@@ -95,14 +97,14 @@ export default function HeroSlider() {
             <div className="hero-slider-arrows" aria-hidden>
                 <button
                     className="hero-slider-arrow hero-slider-arrow--left"
-                    onClick={() => goPrev(true)}
+                    onClick={goPrev}
                     aria-label="Previous slide"
                 >
                     <ChevronLeft size={22} strokeWidth={1.5} />
                 </button>
                 <button
                     className="hero-slider-arrow hero-slider-arrow--right"
-                    onClick={() => goNext(true)}
+                    onClick={goNext}
                     aria-label="Next slide"
                 >
                     <ChevronRight size={22} strokeWidth={1.5} />
@@ -114,7 +116,7 @@ export default function HeroSlider() {
                     <button
                         key={index}
                         className={`hero-slider-progress ${activeIndex === index ? "is-active" : ""}`}
-                        onClick={() => goTo(index, true)}
+                        onClick={() => goTo(index)}
                         aria-label={`Go to slide ${index + 1}`}
                         aria-current={activeIndex === index}
                     />

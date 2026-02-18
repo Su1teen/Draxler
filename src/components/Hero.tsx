@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroSlider from "./HeroSlider";
@@ -9,62 +9,76 @@ if (typeof window !== "undefined") {
     gsap.registerPlugin(ScrollTrigger);
 }
 
+/* ── Pre-split characters as JSX (avoids runtime DOM manipulation) ── */
+function CharLine({ text, className }: { text: string; className: string }) {
+    const chars = useMemo(
+        () =>
+            text.split("").map((ch, i) => (
+                <span
+                    key={i}
+                    className="hero-char"
+                    style={ch === " " ? { width: "0.3em" } : undefined}
+                >
+                    {ch}
+                </span>
+            )),
+        [text]
+    );
+    return <span className={`hero-char-wrap ${className}`}>{chars}</span>;
+}
+
 export default function Hero() {
     const sectionRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
+    const subtitleRef = useRef<HTMLParagraphElement>(null);
+    const scrollIndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const section = sectionRef.current;
+        const video = videoRef.current;
+        const content = contentRef.current;
+        const title = titleRef.current;
+        const subtitle = subtitleRef.current;
+        const scrollInd = scrollIndRef.current;
+        if (!section || !video || !content || !title) return;
+
         const ctx = gsap.context(() => {
             // ───── Parallax: video moves slower ─────
-            gsap.to(videoRef.current, {
+            // scrub: 0.5 smooths out 1:1 jank; force3D promotes to GPU layer
+            gsap.to(video, {
                 yPercent: 30,
                 ease: "none",
+                force3D: true,
                 scrollTrigger: {
-                    trigger: sectionRef.current,
+                    trigger: section,
                     start: "top top",
                     end: "bottom top",
-                    scrub: true,
+                    scrub: 0.5,
                 },
             });
 
-            // ───── Content fades out + SCALES DOWN on scroll (Update 2) ─────
-            gsap.to(contentRef.current, {
+            // ───── Content fades out + SCALES DOWN on scroll ─────
+            gsap.to(content, {
                 opacity: 0,
                 y: -60,
                 scale: 0.7,
                 ease: "none",
+                force3D: true,
                 scrollTrigger: {
-                    trigger: sectionRef.current,
+                    trigger: section,
                     start: "15% top",
                     end: "55% top",
-                    scrub: true,
+                    scrub: 0.5,
                 },
             });
 
-            // ───── TYPEWRITER CHARACTER STAGGER (Update 2) ─────
-            const titleEl = titleRef.current;
-            if (titleEl) {
-                const lines = titleEl.querySelectorAll(".hero-char-wrap");
-                const allChars: HTMLSpanElement[] = [];
-
-                lines.forEach((line) => {
-                    const text = line.textContent || "";
-                    line.textContent = "";
-                    text.split("").forEach((char) => {
-                        const span = document.createElement("span");
-                        span.textContent = char;
-                        span.style.display = "inline-block";
-                        span.style.opacity = "0";
-                        span.style.transform = "translateY(20px)";
-                        if (char === " ") span.style.width = "0.3em";
-                        line.appendChild(span);
-                        allChars.push(span);
-                    });
-                });
-
-                // Stagger reveal after preloader finishes (~3s)
+            // ───── TYPEWRITER CHARACTER STAGGER ─────
+            // Characters are pre-rendered in JSX — just animate them via ref
+            const allChars = title.querySelectorAll(".hero-char");
+            if (allChars.length) {
+                gsap.set(allChars, { opacity: 0, y: 20 });
                 gsap.to(allChars, {
                     opacity: 1,
                     y: 0,
@@ -72,23 +86,34 @@ export default function Hero() {
                     stagger: 0.04,
                     ease: "power2.out",
                     delay: 3.0,
+                    force3D: true,
+                    onComplete() {
+                        // Remove will-change after animation to free GPU layers
+                        allChars.forEach((el) => {
+                            (el as HTMLElement).style.willChange = "auto";
+                        });
+                    },
                 });
             }
 
-            // Subtitle fade-in (after typewriter)
-            gsap.from(".hero-subtitle", {
-                y: 30,
-                opacity: 0,
-                duration: 1,
-                ease: "power3.out",
-                delay: 3.8,
-            });
+            // Subtitle fade-in (after typewriter) — use ref instead of class selector
+            if (subtitle) {
+                gsap.from(subtitle, {
+                    y: 30,
+                    opacity: 0,
+                    duration: 1,
+                    ease: "power3.out",
+                    delay: 3.8,
+                });
+            }
 
-            gsap.from(".hero-scroll-indicator", {
-                opacity: 0,
-                duration: 1,
-                delay: 4.2,
-            });
+            if (scrollInd) {
+                gsap.from(scrollInd, {
+                    opacity: 0,
+                    duration: 1,
+                    delay: 4.2,
+                });
+            }
         });
 
         return () => ctx.revert();
@@ -102,15 +127,15 @@ export default function Hero() {
 
             <div ref={contentRef} className="hero-content">
                 <h1 ref={titleRef} className="hero-title">
-                    <span className="hero-char-wrap hero-title-line">FORGED</span>
-                    <span className="hero-char-wrap hero-title-gold">PERFECTION</span>
+                    <CharLine text="FORGED" className="hero-title-line" />
+                    <CharLine text="PERFECTION" className="hero-title-gold" />
                 </h1>
-                <p className="hero-subtitle">
+                <p ref={subtitleRef} className="hero-subtitle">
                     Aerospace-grade forged wheels for the extraordinary
                 </p>
             </div>
 
-            <div className="hero-scroll-indicator">
+            <div ref={scrollIndRef} className="hero-scroll-indicator">
                 <span>Scroll</span>
                 <div className="scroll-line" />
             </div>

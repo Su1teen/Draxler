@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { ReactNode } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -8,29 +9,38 @@ if (typeof window !== "undefined") {
     gsap.registerPlugin(ScrollTrigger);
 }
 
-export default function ParallaxDivider() {
+export default function ParallaxDivider({
+    src = "/media/background.webp",
+    compact = false,
+    children,
+}: {
+    src?: string;
+    compact?: boolean;
+    children?: ReactNode;
+}) {
     const sectionRef = useRef<HTMLDivElement>(null);
     const imageRef = useRef<HTMLImageElement>(null);
 
     useEffect(() => {
-        const ctx = gsap.context(() => {
-            const section = sectionRef.current;
-            const image = imageRef.current;
-            if (!section || !image) return;
+        const section = sectionRef.current;
+        const image = imageRef.current;
+        if (!section || !image) return;
 
-            // Image is 130% tall — it moves upward slower than the scroll,
-            // creating a parallax "window" effect
+        const ctx = gsap.context(() => {
+            // scrub: 0.5 smooths interpolation (vs true = 1:1 every frame)
+            // force3D promotes to GPU composite layer
             gsap.fromTo(
                 image,
                 { yPercent: -15 },
                 {
                     yPercent: 15,
                     ease: "none",
+                    force3D: true,
                     scrollTrigger: {
                         trigger: section,
-                        start: "top bottom", // animation starts when section enters viewport
-                        end: "bottom top",   // ends when section leaves viewport
-                        scrub: true,
+                        start: "top bottom",
+                        end: "bottom top",
+                        scrub: 0.5,
                     },
                 }
             );
@@ -40,14 +50,18 @@ export default function ParallaxDivider() {
     }, []);
 
     return (
-        <section ref={sectionRef} className="parallax-divider">
+        <section ref={sectionRef} className={`parallax-divider ${compact ? "parallax-divider--compact" : ""}`}>
             <img
                 ref={imageRef}
-                src="/media/background.png"
+                src={src}
                 alt=""
                 className="parallax-divider-img"
+                loading="lazy"
+                decoding="async"
                 draggable={false}
             />
+            <div className="parallax-divider-overlay" aria-hidden="true" />
+            {children ? <div className="parallax-divider-content">{children}</div> : null}
         </section>
     );
 }

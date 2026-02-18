@@ -5,121 +5,226 @@ export interface CatalogProduct {
   hoverImage: string;
   description: string;
   sizes: string[];
+  price: string;
 }
 
 export interface CatalogCategory {
   slug: string;
   name: string;
+  displayTitle: string;
   description: string;
+  headerImage: string;
   products: CatalogProduct[];
 }
 
-const IMG = "/catalog/Vossen_1_angle.png";
-const IMG_HOVER = "/catalog/vossen_1_front.png";
-
 export const catalogCategories: CatalogCategory[] = [
   {
-    slug: "forged-series",
-    name: "Forged Series",
+    slug: "vip",
+    name: "VIP Series",
+    displayTitle: "V I P \u00A0 S E R I E S",
     description:
-      "Precision-forged from aerospace-grade 6061-T6 aluminium under 8,000 tonnes of hydraulic pressure. Every spoke is CNC-finished to sub-micron tolerances.",
+      "Commanding presence for executive saloons and luxury SUVs. Designed for maximum visual impact, featuring intricate monoblock structures and elegant brushed finishes.",
+    headerImage: "/catalog/catalog_1_black.png",
     products: [
       {
         slug: "drx-101",
         name: "DRX-101",
-        image: IMG,
-        hoverImage: IMG_HOVER,
+        image: "/catalog/vossen_1_front.png",
+        hoverImage: "/catalog/Vossen_1_angle.png",
         description:
-          "A bold multi-spoke design engineered for maximum airflow and minimal unsprung mass. Each spoke is CNC-machined to a mirror edge, reflecting light with liquid precision.",
+          "A bold multi-spoke design engineered for maximum airflow and minimal unsprung mass. Each spoke is CNC-machined to a mirror edge.",
         sizes: ['20"', '21"', '22"', '23"'],
+        price: "From $8,200",
       },
       {
         slug: "drx-102",
         name: "DRX-102",
-        image: IMG,
-        hoverImage: IMG_HOVER,
+        image: "/catalog/vossen_2_front.png",
+        hoverImage: "/catalog/vossen_2_angle.png",
         description:
-          "Deep concave profile with directional spokes designed for aggressive stance and superior brake cooling. Forged from a single 6061-T6 billet.",
+          "Deep concave profile with directional spokes designed for aggressive stance and superior brake cooling.",
         sizes: ['20"', '21"', '22"', '23"'],
+        price: "From $8,800",
       },
       {
         slug: "drx-103",
         name: "DRX-103",
-        image: IMG,
-        hoverImage: IMG_HOVER,
+        image: "/catalog/vossen_3_front.png",
+        hoverImage: "/catalog/vossen_3_angle.png",
         description:
-          "Minimalist five-spoke geometry channelling pure racing heritage. Ultra-lightweight monoblock construction delivers instant throttle response.",
+          "Minimalist five-spoke geometry channelling pure racing heritage. Ultra-lightweight monoblock construction.",
         sizes: ['19"', '20"', '21"', '22"'],
+        price: "From $7,600",
+      },
+      {
+        slug: "drx-104",
+        name: "DRX-104",
+        image: "/catalog/vossen_1_front.png",
+        hoverImage: "/catalog/Vossen_1_angle.png",
+        description:
+          "Flowing twin-spoke design with brushed gunmetal finish. Engineered for GT-class vehicles.",
+        sizes: ['20"', '21"', '22"'],
+        price: "From $9,100",
+      },
+      {
+        slug: "drx-105",
+        name: "DRX-105",
+        image: "/catalog/vossen_2_front.png",
+        hoverImage: "/catalog/vossen_2_angle.png",
+        description:
+          "Multi-piece forged construction with polished lip and satin center. Bespoke colour matching available.",
+        sizes: ['21"', '22"', '23"'],
+        price: "From $10,400",
+      },
+      {
+        slug: "drx-106",
+        name: "DRX-106",
+        image: "/catalog/vossen_3_front.png",
+        hoverImage: "/catalog/vossen_3_angle.png",
+        description:
+          "Ultra-concave split-six spoke with integrated brake duct channels. Maximum presence on premium SUVs.",
+        sizes: ['22"', '23"', '24"'],
+        price: "From $11,200",
       },
     ],
   },
   {
-    slug: "carbon-series",
-    name: "Carbon Series",
+    slug: "offroad",
+    name: "Off-Road Series",
+    displayTitle: "O F F - R O A D \u00A0 S E R I E S",
     description:
-      "Carbon-fibre-reinforced forged wheels — unrivalled strength at half the weight. Aerospace-derived layup technology for the ultimate in performance.",
+      "Engineered for the extremes. Reinforced load ratings and bead-lock capabilities meet rugged aesthetics. Built to withstand the harshest terrains without compromising on style.",
+    headerImage: "/catalog/catalog_2_black.png",
     products: [
       {
         slug: "drx-201",
         name: "DRX-201",
-        image: IMG,
-        hoverImage: IMG_HOVER,
+        image: "/catalog/vossen_1_front.png",
+        hoverImage: "/catalog/Vossen_1_angle.png",
         description:
-          "Full carbon-fibre barrel paired with forged aluminium spokes. Aerospace-grade layup delivers 40% weight savings over fully forged equivalents.",
-        sizes: ['20"', '21"', '22"'],
+          "Reinforced eight-spoke bead-lock design rated for extreme off-road loads. Full trail-ready specification.",
+        sizes: ['17"', '18"', '20"'],
+        price: "From $6,800",
       },
       {
         slug: "drx-202",
         name: "DRX-202",
-        image: IMG,
-        hoverImage: IMG_HOVER,
+        image: "/catalog/vossen_2_front.png",
+        hoverImage: "/catalog/vossen_2_angle.png",
         description:
-          "Exposed carbon weave face with diamond-cut lip — a statement piece merging motorsport engineering with bespoke craftsmanship and undeniable presence.",
-        sizes: ['20"', '21"', '22"', '23"'],
+          "Tactical mesh pattern with simulated bead-lock ring. MIL-spec corrosion-resistant coating.",
+        sizes: ['17"', '18"', '20"'],
+        price: "From $7,200",
       },
       {
         slug: "drx-203",
         name: "DRX-203",
-        image: IMG,
-        hoverImage: IMG_HOVER,
+        image: "/catalog/vossen_3_front.png",
+        hoverImage: "/catalog/vossen_3_angle.png",
         description:
-          "Track-focused monoblock with carbon-ceramic-compatible clearances. Born on the Nürburgring, refined for the boulevard. Uncompromising in every dimension.",
-        sizes: ['19"', '20"', '21"'],
+          "Heavy-duty split-five spoke with integrated tyre pressure sensor bosses. Built for overlanding.",
+        sizes: ['17"', '18"', '20"'],
+        price: "From $7,500",
+      },
+      {
+        slug: "drx-204",
+        name: "DRX-204",
+        image: "/catalog/vossen_1_front.png",
+        hoverImage: "/catalog/Vossen_1_angle.png",
+        description:
+          "Competition-spec bead-lock wheel with replaceable wear ring. Rated for high-speed desert racing.",
+        sizes: ['17"', '18"'],
+        price: "From $8,400",
+      },
+      {
+        slug: "drx-205",
+        name: "DRX-205",
+        image: "/catalog/vossen_2_front.png",
+        hoverImage: "/catalog/vossen_2_angle.png",
+        description:
+          "Overland cruiser design with extra-wide barrel. Maximum payload capacity with understated aesthetics.",
+        sizes: ['18"', '20"'],
+        price: "From $7,800",
+      },
+      {
+        slug: "drx-206",
+        name: "DRX-206",
+        image: "/catalog/vossen_3_front.png",
+        hoverImage: "/catalog/vossen_3_angle.png",
+        description:
+          "Stealth flat-six spoke with ceramic blast finish. UV and salt-spray rated for coastal environments.",
+        sizes: ['17"', '18"', '20"'],
+        price: "From $6,900",
       },
     ],
   },
   {
-    slug: "heritage",
-    name: "Heritage",
+    slug: "sport",
+    name: "Sport Series",
+    displayTitle: "S P O R T \u00A0 S E R I E S",
     description:
-      "Timeless designs remastered with modern forging technology. Classic silhouettes, contemporary performance, enduring elegance.",
+      "Performance driven. Focusing on weight reduction and brake cooling. These lightweight forged designs reduce unsprung mass for superior handling and track-ready dynamics.",
+    headerImage: "/catalog/catalog_3_black.png",
     products: [
       {
         slug: "drx-301",
         name: "DRX-301",
-        image: IMG,
-        hoverImage: IMG_HOVER,
+        image: "/catalog/vossen_1_front.png",
+        hoverImage: "/catalog/Vossen_1_angle.png",
         description:
-          "Classic mesh pattern reimagined through computational design. Each intersection is stress-optimised for the loads demanded by modern supercars.",
-        sizes: ['19"', '20"', '21"', '22"'],
+          "Track-focused monoblock with maximum brake caliper clearance. Carbon-ceramic compatible.",
+        sizes: ['19"', '20"', '21"'],
+        price: "From $9,200",
       },
       {
         slug: "drx-302",
         name: "DRX-302",
-        image: IMG,
-        hoverImage: IMG_HOVER,
+        image: "/catalog/vossen_2_front.png",
+        hoverImage: "/catalog/vossen_2_angle.png",
         description:
-          "Vintage five-hole rally design precision-machined from 6061-T6 billet. Heritage aesthetics paired with contemporary engineering standards.",
-        sizes: ['18"', '19"', '20"', '21"'],
+          "Aero-blade spoke design with integrated air channels. Optimised CFD for brake cooling.",
+        sizes: ['19"', '20"', '21"'],
+        price: "From $9,800",
       },
       {
         slug: "drx-303",
         name: "DRX-303",
-        image: IMG,
-        hoverImage: IMG_HOVER,
+        image: "/catalog/vossen_3_front.png",
+        hoverImage: "/catalog/vossen_3_angle.png",
         description:
-          "Art-Deco-inspired fan-spoke pattern with hand-brushed satin finish. A collector\u2019s wheel for the true automotive connoisseur.",
-        sizes: ['20"', '21"', '22"', '23"'],
+          "Lightweight split-five with centre-lock option. Born on the Nürburgring.",
+        sizes: ['19"', '20"'],
+        price: "From $10,600",
+      },
+      {
+        slug: "drx-304",
+        name: "DRX-304",
+        image: "/catalog/vossen_1_front.png",
+        hoverImage: "/catalog/Vossen_1_angle.png",
+        description:
+          "Directional fan-blade spoke with weight-optimised hub. Sub-8 kg per wheel in 19-inch.",
+        sizes: ['19"', '20"', '21"'],
+        price: "From $11,400",
+      },
+      {
+        slug: "drx-305",
+        name: "DRX-305",
+        image: "/catalog/vossen_2_front.png",
+        hoverImage: "/catalog/vossen_2_angle.png",
+        description:
+          "Hybrid carbon-forged construction. Inner barrel in woven carbon, outer lip in brushed titanium effect.",
+        sizes: ['20"', '21"'],
+        price: "From $12,800",
+      },
+      {
+        slug: "drx-306",
+        name: "DRX-306",
+        image: "/catalog/vossen_3_front.png",
+        hoverImage: "/catalog/vossen_3_angle.png",
+        description:
+          "Endurance-spec touring wheel with vibration-dampened core. Comfort and performance in balance.",
+        sizes: ['19"', '20"', '21"', '22"'],
+        price: "From $8,600",
       },
     ],
   },

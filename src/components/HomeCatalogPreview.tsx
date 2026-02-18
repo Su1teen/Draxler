@@ -14,21 +14,21 @@ if (typeof window !== "undefined") {
 const previewItems = [
     {
         id: 1,
-        title: "Technic",
-        description: "Technic Series",
-        slug: "technic",
+        title: "VIP Series",
+        description: "VIP Series",
+        slug: "vip",
     },
     {
         id: 2,
-        title: "Floating Spokes",
-        description: "Floating Spokes Series",
-        slug: "floating-spokes",
+        title: "Off-Road",
+        description: "Off-Road",
+        slug: "offroad",
     },
     {
         id: 3,
-        title: "Casual",
-        description: "Casual Series",
-        slug: "casual",
+        title: "Sport Series",
+        description: "Sport Series",
+        slug: "sport",
     },
 ];
 
@@ -65,12 +65,13 @@ export default function HomeCatalogPreview() {
     const imageTone = theme === "dark" ? "black" : "white";
 
     return (
-        <section ref={sectionRef} className="home-catalog-section" id="home-catalog">
+        <section ref={sectionRef} className="home-catalog-section" id="catalog">
+            <div className="home-catalog-heading">E X P L O R E &nbsp; C A T A L O G</div>
             <div ref={gridRef} className="home-catalog-grid">
                 {previewItems.map((item) => (
                     <Link
                         key={item.id}
-                        href={`/catalog/${item.slug}`}
+                        href={`/catalog#${item.slug}`}
                         className="home-catalog-card"
                     >
                         <Image

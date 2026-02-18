@@ -70,31 +70,34 @@ export default function Roadmap() {
     const router = useRouter();
     const sectionRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
+    const headerRef = useRef<HTMLDivElement>(null);
+    const timelineBarRef = useRef<HTMLDivElement>(null);
+    const lineFillRef = useRef<HTMLDivElement>(null);
     const [activeStep, setActiveStep] = useState<number | null>(null);
     const timelineRef = useRef<gsap.core.Timeline | null>(null);
     const hasAutoOpenedRef = useRef(false);
+    const rafIdRef = useRef<number>(0);
 
     const smoothScrollTo = useCallback((targetY: number, duration = 1300) => {
-        const startY = window.scrollY || window.pageYOffset;
+        // Cancel any previous RAF-based scroll
+        if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+
+        const startY = window.scrollY;
         const distance = targetY - startY;
         const startTime = performance.now();
 
-        const easeInOutCubic = (time: number) =>
-            time < 0.5 ? 4 * time * time * time : 1 - Math.pow(-2 * time + 2, 3) / 2;
+        const easeInOutCubic = (t: number) =>
+            t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-        const stepFrame = (now: number) => {
-            const elapsed = now - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = easeInOutCubic(progress);
-
-            window.scrollTo(0, startY + distance * eased);
-
+        const step = (now: number) => {
+            const progress = Math.min((now - startTime) / duration, 1);
+            window.scrollTo(0, startY + distance * easeInOutCubic(progress));
             if (progress < 1) {
-                requestAnimationFrame(stepFrame);
+                rafIdRef.current = requestAnimationFrame(step);
             }
         };
 
-        requestAnimationFrame(stepFrame);
+        rafIdRef.current = requestAnimationFrame(step);
     }, []);
 
     const handleAction = useCallback((action: StepActionType) => {
@@ -110,99 +113,97 @@ export default function Roadmap() {
         smoothScrollTo(target, 1400);
     }, [router, smoothScrollTo]);
 
-    // Entrance animation
+    // Consolidated entrance animation — single ScrollTrigger + auto-open via onEnter
     useEffect(() => {
+        const section = sectionRef.current;
+        const header = headerRef.current;
+        const lineFill = lineFillRef.current;
+        const timelineBar = timelineBarRef.current;
+        if (!section || !header || !lineFill || !timelineBar) return;
+
         const ctx = gsap.context(() => {
-            // Fade in the header
-            gsap.from(".roadmap-header", {
+            // Single entrance timeline with one ScrollTrigger
+            const entranceTl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: section,
+                    start: "top 75%",
+                    once: true,
+                    onEnter: () => {
+                        // Replace separate IntersectionObserver — auto-open first step
+                        if (!hasAutoOpenedRef.current) {
+                            hasAutoOpenedRef.current = true;
+                            // Delay so entrance animation plays first
+                            gsap.delayedCall(0.9, () => setActiveStep(0));
+                        }
+                    },
+                },
+            });
+
+            // Header fade in
+            entranceTl.from(header, {
                 y: 40,
                 opacity: 0,
                 duration: 1,
                 ease: "power3.out",
-                scrollTrigger: {
-                    trigger: sectionRef.current,
-                    start: "top 75%",
-                },
+                force3D: true,
             });
 
-            // Stagger the timeline nodes
-            gsap.from(".rm-node", {
+            // Nodes stagger (queried once inside context)
+            const nodes = gsap.utils.toArray<HTMLElement>(".rm-node");
+            entranceTl.from(nodes, {
                 y: 30,
                 opacity: 0,
                 duration: 0.7,
                 ease: "power3.out",
                 stagger: 0.12,
-                scrollTrigger: {
-                    trigger: ".rm-timeline",
-                    start: "top 85%",
-                },
-            });
+                force3D: true,
+            }, "-=0.6");
 
-            // Animate the connecting line width
-            gsap.from(".rm-line-fill", {
+            // Line fill
+            entranceTl.from(lineFill, {
                 scaleX: 0,
                 duration: 1.2,
                 ease: "power2.inOut",
-                scrollTrigger: {
-                    trigger: ".rm-timeline",
-                    start: "top 85%",
-                },
-            });
+            }, "-=0.8");
         });
 
         return () => ctx.revert();
     }, []);
 
+    // Clean up RAF on unmount
     useEffect(() => {
-        if (!sectionRef.current) return;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                const entry = entries[0];
-                if (!entry || !entry.isIntersecting) return;
-                if (hasAutoOpenedRef.current) return;
-
-                hasAutoOpenedRef.current = true;
-                setActiveStep(0);
-            },
-            {
-                threshold: 0.35,
-            }
-        );
-
-        observer.observe(sectionRef.current);
-
-        return () => observer.disconnect();
+        return () => {
+            if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+        };
     }, []);
 
     const handleStepClick = useCallback((index: number) => {
-        // Kill any running animation
         if (timelineRef.current) {
             timelineRef.current.kill();
         }
 
-        // If clicking the same step, close it
         if (activeStep === index) {
             const tl = gsap.timeline();
-            tl.to(".rm-reveal", {
+            tl.to(contentRef.current?.querySelector(".rm-reveal") || ".rm-reveal", {
                 opacity: 0,
                 y: 30,
                 duration: 0.4,
                 ease: "power2.in",
+                force3D: true,
                 onComplete: () => setActiveStep(null),
             });
             timelineRef.current = tl;
             return;
         }
 
-        // If there's an active step, animate out first, then in
         if (activeStep !== null) {
             const tl = gsap.timeline();
-            tl.to(".rm-reveal", {
+            tl.to(contentRef.current?.querySelector(".rm-reveal") || ".rm-reveal", {
                 opacity: 0,
                 y: 20,
                 duration: 0.3,
                 ease: "power2.in",
+                force3D: true,
             });
             tl.call(() => setActiveStep(index));
             timelineRef.current = tl;
@@ -211,67 +212,88 @@ export default function Roadmap() {
         }
     }, [activeStep]);
 
-    // Animate content in when activeStep changes
+    // Animate content in when activeStep changes — scoped to contentRef
     useEffect(() => {
         if (activeStep === null || !contentRef.current) return;
 
-        const tl = gsap.timeline();
+        const scope = contentRef.current;
+        const reveal = scope.querySelector(".rm-reveal");
+        const image = scope.querySelector(".rm-reveal-image");
+        const label = scope.querySelector(".rm-reveal-label");
+        const heading = scope.querySelector(".rm-reveal-heading");
+        const desc = scope.querySelector(".rm-reveal-desc");
+        const btns = scope.querySelectorAll(".rm-reveal-btn");
+
+        if (!reveal) return;
 
         // Set initial state
-        gsap.set(".rm-reveal", { opacity: 0, y: 40 });
-        gsap.set(".rm-reveal-image", { scale: 1.15, opacity: 0 });
-        gsap.set(".rm-reveal-label", { x: -20, opacity: 0 });
-        gsap.set(".rm-reveal-heading", { y: 20, opacity: 0 });
-        gsap.set(".rm-reveal-desc", { y: 20, opacity: 0 });
-        gsap.set(".rm-reveal-btn", { y: 15, opacity: 0 });
+        gsap.set(reveal, { opacity: 0, y: 40 });
+        if (image) gsap.set(image, { scale: 1.15, opacity: 0 });
+        if (label) gsap.set(label, { x: -20, opacity: 0 });
+        if (heading) gsap.set(heading, { y: 20, opacity: 0 });
+        if (desc) gsap.set(desc, { y: 20, opacity: 0 });
+        if (btns.length) gsap.set(btns, { y: 15, opacity: 0 });
 
-        // Container slides up and fades in
-        tl.to(".rm-reveal", {
+        const tl = gsap.timeline();
+
+        tl.to(reveal, {
             opacity: 1,
             y: 0,
             duration: 0.6,
             ease: "power3.out",
+            force3D: true,
         });
 
-        // Image zooms to fit and fades in
-        tl.to(".rm-reveal-image", {
-            scale: 1,
-            opacity: 1,
-            duration: 0.8,
-            ease: "power2.out",
-        }, "-=0.4");
+        if (image) {
+            tl.to(image, {
+                scale: 1,
+                opacity: 1,
+                duration: 0.8,
+                ease: "power2.out",
+                force3D: true,
+            }, "-=0.4");
+        }
 
-        // Label slides in
-        tl.to(".rm-reveal-label", {
-            x: 0,
-            opacity: 1,
-            duration: 0.5,
-            ease: "power3.out",
-        }, "-=0.5");
+        if (label) {
+            tl.to(label, {
+                x: 0,
+                opacity: 1,
+                duration: 0.5,
+                ease: "power3.out",
+                force3D: true,
+            }, "-=0.5");
+        }
 
-        // Heading rises up
-        tl.to(".rm-reveal-heading", {
-            y: 0,
-            opacity: 1,
-            duration: 0.6,
-            ease: "power3.out",
-        }, "-=0.35");
+        if (heading) {
+            tl.to(heading, {
+                y: 0,
+                opacity: 1,
+                duration: 0.6,
+                ease: "power3.out",
+                force3D: true,
+            }, "-=0.35");
+        }
 
-        // Description fades in
-        tl.to(".rm-reveal-desc", {
-            y: 0,
-            opacity: 1,
-            duration: 0.6,
-            ease: "power3.out",
-        }, "-=0.3");
+        if (desc) {
+            tl.to(desc, {
+                y: 0,
+                opacity: 1,
+                duration: 0.6,
+                ease: "power3.out",
+                force3D: true,
+            }, "-=0.3");
+        }
 
-        // Button rises up
-        tl.to(".rm-reveal-btn", {
-            y: 0,
-            opacity: 1,
-            duration: 0.5,
-            ease: "power3.out",
-        }, "-=0.3");
+        if (btns.length) {
+            tl.to(btns, {
+                y: 0,
+                opacity: 1,
+                duration: 0.5,
+                ease: "power3.out",
+                stagger: 0.08,
+                force3D: true,
+            }, "-=0.3");
+        }
 
         timelineRef.current = tl;
     }, [activeStep]);
@@ -279,18 +301,18 @@ export default function Roadmap() {
     const active = activeStep !== null ? steps[activeStep] : null;
 
     return (
-        <section ref={sectionRef} className="rm-section" id="roadmap">
+        <section ref={sectionRef} className="rm-section" id="customization">
             <div className="rm-inner">
                 {/* Header */}
-                <div className="roadmap-header">
-                    <div className="rm-label">Manufacturing Process</div>
-                    <h2 className="rm-title">From Billet to Brilliance</h2>
+                <div ref={headerRef} className="roadmap-header">
+                    <div className="rm-label">YOUR VISION. ENGINEERED.</div>
+                    <h2 className="rm-title">The Process</h2>
                 </div>
 
                 {/* Timeline bar */}
-                <div className="rm-timeline">
+                <div ref={timelineBarRef} className="rm-timeline">
                     <div className="rm-line">
-                        <div className="rm-line-fill" />
+                        <div ref={lineFillRef} className="rm-line-fill" />
                     </div>
                     {steps.map((step, i) => (
                         <button
@@ -316,6 +338,8 @@ export default function Roadmap() {
                                         src={active.image}
                                         alt={active.title}
                                         className="rm-reveal-image"
+                                        loading="lazy"
+                                        decoding="async"
                                     />
                                 </div>
 
